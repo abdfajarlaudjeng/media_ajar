@@ -1,0 +1,1040 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Pembelajaran Interaktif - Data Siswa</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+        }
+        
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+        }
+        
+        .loading-spinner {
+            border: 4px solid #f3f4f6;
+            border-top: 4px solid #3b82f6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .fade-in {
+            animation: fadeIn 0.6s ease-in;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+        
+        .search-highlight {
+            background-color: #fef3c7;
+            padding: 2px 4px;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-100">
+    <!-- Header -->
+    <div class="gradient-bg text-white py-8">
+        <div class="container mx-auto px-4">
+            <h1 class="text-4xl font-bold text-center mb-4">📚 Media Pembelajaran Interaktif</h1>
+            <p class="text-xl text-center text-blue-100">Data Siswa dari Google Spreadsheet</p>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container mx-auto px-4 py-8">
+        <!-- Controls Panel -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mb-8 fade-in">
+            <div class="grid md:grid-cols-4 gap-4 mb-6">
+                <!-- Search -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">🔍 Cari Siswa</label>
+                    <input type="text" id="searchInput" placeholder="Nama atau kelas..." 
+                           class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                </div>
+                
+                <!-- Filter by Class -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">🏫 Filter Kelas</label>
+                    <select id="classFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="">Semua Kelas</option>
+                    </select>
+                </div>
+                
+                <!-- Sort Options -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">📊 Urutkan</label>
+                    <select id="sortOptions" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <option value="nama">Nama A-Z</option>
+                        <option value="nama-desc">Nama Z-A</option>
+                        <option value="kelas">Kelas</option>
+                        <option value="nilai">Nilai Tertinggi</option>
+                    </select>
+                </div>
+                
+                <!-- Refresh Button -->
+                <div class="flex items-end">
+                    <button onclick="loadData()" class="w-full bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                        🔄 Refresh Data
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Attendance Section -->
+            <div class="mt-6 p-4 bg-gradient-to-r from-green-50 to-blue-50 rounded-lg border border-green-200">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center">
+                    ✅ <span class="ml-2">Absensi Kehadiran Siswa</span>
+                </h3>
+                <div class="grid md:grid-cols-4 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">📚 Topik Pembelajaran</label>
+                        <input type="text" id="topikPembelajaran" placeholder="Masukkan topik pembelajaran hari ini..." 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">🏫 Pilih Kelas</label>
+                        <select id="attendanceClassFilter" class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                            <option value="">Pilih Kelas untuk Absensi</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">📅 Tanggal</label>
+                        <input type="date" id="tanggalAbsensi" 
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-green-500">
+                    </div>
+                    <div class="flex items-end space-x-2">
+                        <button onclick="startAttendance()" id="startAttendanceBtn" class="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors">
+                            🎯 Mulai Absensi
+                        </button>
+                        <button onclick="viewAttendanceHistory()" class="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700 transition-colors">
+                            📋 Riwayat
+                        </button>
+                    </div>
+                </div>
+            </div>
+            </div>
+            
+            <!-- Statistics -->
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="statistics">
+                <div class="bg-blue-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-blue-600" id="totalStudents">-</div>
+                    <div class="text-sm text-blue-800">Total Siswa</div>
+                </div>
+                <div class="bg-green-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-green-600" id="avgScore">-</div>
+                    <div class="text-sm text-green-800">Rata-rata Nilai</div>
+                </div>
+                <div class="bg-purple-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-purple-600" id="totalClasses">-</div>
+                    <div class="text-sm text-purple-800">Jumlah Kelas</div>
+                </div>
+                <div class="bg-orange-50 p-4 rounded-lg text-center">
+                    <div class="text-2xl font-bold text-orange-600" id="highestScore">-</div>
+                    <div class="text-sm text-orange-800">Nilai Tertinggi</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading State -->
+        <div id="loadingState" class="text-center py-12">
+            <div class="loading-spinner mx-auto mb-4"></div>
+            <p class="text-gray-600">Memuat data dari Google Spreadsheet...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="errorState" class="hidden bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <div class="text-red-600 text-6xl mb-4">⚠️</div>
+            <h3 class="text-lg font-semibold text-red-800 mb-2">Gagal Memuat Data</h3>
+            <p class="text-red-600 mb-4" id="errorMessage"></p>
+            <button onclick="loadData()" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700">
+                Coba Lagi
+            </button>
+        </div>
+
+        <!-- Students Grid -->
+        <div id="studentsGrid" class="grid md:grid-cols-2 lg:grid-cols-3 gap-6 hidden">
+        </div>
+
+        <!-- No Results -->
+        <div id="noResults" class="hidden text-center py-12">
+            <div class="text-gray-400 text-6xl mb-4">🔍</div>
+            <h3 class="text-lg font-semibold text-gray-600 mb-2">Tidak Ada Hasil</h3>
+            <p class="text-gray-500">Coba ubah kata kunci pencarian atau filter</p>
+        </div>
+    </div>
+
+    <!-- Student Detail Modal -->
+    <div id="studentModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-md w-full mx-4">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">Detail Siswa</h3>
+                <button onclick="closeModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            <div id="modalContent">
+                <!-- Content will be populated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Attendance Modal -->
+    <div id="attendanceModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center mb-6">
+                <div>
+                    <h3 class="text-2xl font-bold text-gray-800">📋 Absensi Kehadiran</h3>
+                    <p class="text-gray-600" id="attendanceInfo">Topik: - | Tanggal: -</p>
+                </div>
+                <button onclick="closeAttendanceModal()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+            </div>
+            
+            <div class="mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <div class="flex space-x-4">
+                        <button onclick="markAllPresent()" class="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 text-sm">
+                            ✅ Semua Hadir
+                        </button>
+                        <button onclick="markAllAbsent()" class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 text-sm">
+                            ❌ Semua Tidak Hadir
+                        </button>
+                    </div>
+                    <div class="text-sm text-gray-600">
+                        <span id="presentCount">0</span> Hadir | <span id="absentCount">0</span> Tidak Hadir
+                    </div>
+                </div>
+            </div>
+            
+            <div id="attendanceList" class="space-y-3 mb-6">
+                <!-- Attendance list will be populated by JavaScript -->
+            </div>
+            
+            <div class="flex justify-between items-center pt-4 border-t border-gray-200">
+                <button onclick="closeAttendanceModal()" class="bg-gray-500 text-white px-6 py-2 rounded-md hover:bg-gray-600">
+                    Batal
+                </button>
+                <button onclick="saveAttendance()" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+                    💾 Simpan Absensi
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allStudents = [];
+        let filteredStudents = [];
+        let attendanceData = {};
+        let currentTopic = '';
+        let currentDate = '';
+        
+        // Google Sheets API configuration
+        const SPREADSHEET_ID = '1InK-vJq3hx0dIhpJV0DvSjauMzKrvnfj-1fDI6vb4tU';
+        const API_KEY = 'AIzaSyDeZZmBF-1jK4enK0Wcn2tzn-qmYJfyoIo';
+        const SHEET_NAME = 'siswa';
+        const ATTENDANCE_SHEET = 'absensi';
+        
+        // Load data from Google Sheets
+        async function loadData() {
+            const loadingState = document.getElementById('loadingState');
+            const errorState = document.getElementById('errorState');
+            const studentsGrid = document.getElementById('studentsGrid');
+            
+            loadingState.classList.remove('hidden');
+            errorState.classList.add('hidden');
+            studentsGrid.classList.add('hidden');
+            
+            try {
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}?key=${API_KEY}`;
+                const response = await fetch(url);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                
+                const data = await response.json();
+                
+                if (!data.values || data.values.length === 0) {
+                    throw new Error('Tidak ada data ditemukan di spreadsheet');
+                }
+                
+                // Process the data
+                const headers = data.values[0];
+                const rows = data.values.slice(1);
+                
+                allStudents = rows.map(row => {
+                    const student = {};
+                    headers.forEach((header, index) => {
+                        student[header.toLowerCase().replace(/\s+/g, '_')] = row[index] || '';
+                    });
+                    return student;
+                });
+                
+                filteredStudents = [...allStudents];
+                
+                loadingState.classList.add('hidden');
+                updateDisplay();
+                updateStatistics();
+                populateFilters();
+                
+            } catch (error) {
+                console.error('Error loading data:', error);
+                loadingState.classList.add('hidden');
+                errorState.classList.remove('hidden');
+                document.getElementById('errorMessage').textContent = error.message;
+            }
+        }
+        
+        // Update display
+        function updateDisplay() {
+            const studentsGrid = document.getElementById('studentsGrid');
+            const noResults = document.getElementById('noResults');
+            
+            if (filteredStudents.length === 0) {
+                studentsGrid.classList.add('hidden');
+                noResults.classList.remove('hidden');
+                return;
+            }
+            
+            noResults.classList.add('hidden');
+            studentsGrid.classList.remove('hidden');
+            
+            studentsGrid.innerHTML = filteredStudents.map(student => `
+                <div class="bg-white rounded-lg shadow-md p-6 card-hover cursor-pointer fade-in" onclick="showStudentDetail(${JSON.stringify(student).replace(/"/g, '&quot;')})">
+                    <div class="flex items-center mb-4">
+                        <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-lg">
+                            ${(student.nama || 'N').charAt(0).toUpperCase()}
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="font-semibold text-gray-800">${student.nama && student.nama.trim() !== '' ? student.nama : `Siswa ${student.absen || 'Tanpa Nomor'}`}</h3>
+                            <p class="text-sm text-gray-600">${student.kelas || 'Kelas tidak tersedia'}</p>
+                        </div>
+                    </div>
+                    
+                    <div class="space-y-2">
+                        ${student.nilai ? `
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Nilai:</span>
+                                <span class="font-semibold ${getScoreColor(student.nilai)}">${student.nilai}</span>
+                            </div>
+                        ` : ''}
+                        
+                        ${student.absen ? `
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">No. Absen:</span>
+                                <span class="font-medium text-gray-800">${student.absen}</span>
+                            </div>
+                        ` : ''}
+                        
+                        ${student.status ? `
+                            <div class="flex justify-between items-center">
+                                <span class="text-sm text-gray-600">Status:</span>
+                                <span class="px-2 py-1 rounded-full text-xs ${getStatusColor(student.status)}">${student.status}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                    
+                    <div class="mt-4 pt-4 border-t border-gray-200">
+                        <button class="text-blue-600 hover:text-blue-800 text-sm font-medium">
+                            👁️ Lihat Detail
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+        
+        // Get score color based on value
+        function getScoreColor(score) {
+            const numScore = parseFloat(score);
+            if (numScore >= 85) return 'text-green-600';
+            if (numScore >= 70) return 'text-yellow-600';
+            return 'text-red-600';
+        }
+        
+        // Get status color
+        function getStatusColor(status) {
+            switch(status?.toLowerCase()) {
+                case 'aktif': return 'bg-green-100 text-green-800';
+                case 'lulus': return 'bg-blue-100 text-blue-800';
+                case 'tidak aktif': return 'bg-red-100 text-red-800';
+                default: return 'bg-gray-100 text-gray-800';
+            }
+        }
+        
+        // Update statistics
+        function updateStatistics() {
+            const totalStudents = allStudents.length;
+            const scores = allStudents.map(s => parseFloat(s.nilai)).filter(s => !isNaN(s));
+            const avgScore = scores.length > 0 ? (scores.reduce((a, b) => a + b, 0) / scores.length).toFixed(1) : 0;
+            const highestScore = scores.length > 0 ? Math.max(...scores) : 0;
+            const classes = [...new Set(allStudents.map(s => s.kelas).filter(c => c))];
+            
+            document.getElementById('totalStudents').textContent = totalStudents;
+            document.getElementById('avgScore').textContent = avgScore;
+            document.getElementById('totalClasses').textContent = classes.length;
+            document.getElementById('highestScore').textContent = highestScore;
+        }
+        
+        // Populate filters
+        function populateFilters() {
+            const classFilter = document.getElementById('classFilter');
+            const attendanceClassFilter = document.getElementById('attendanceClassFilter');
+            const classes = [...new Set(allStudents.map(s => s.kelas).filter(c => c))].sort();
+            
+            classFilter.innerHTML = '<option value="">Semua Kelas</option>' + 
+                classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
+            
+            attendanceClassFilter.innerHTML = '<option value="">Pilih Kelas untuk Absensi</option>' + 
+                classes.map(cls => `<option value="${cls}">${cls}</option>`).join('');
+        }
+        
+        // Search and filter functions
+        function applyFilters() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            const classFilter = document.getElementById('classFilter').value;
+            const sortOption = document.getElementById('sortOptions').value;
+            
+            // Filter
+            filteredStudents = allStudents.filter(student => {
+                const matchesSearch = !searchTerm || 
+                    (student.nama && student.nama.toLowerCase().includes(searchTerm)) ||
+                    (student.kelas && student.kelas.toLowerCase().includes(searchTerm));
+                
+                const matchesClass = !classFilter || student.kelas === classFilter;
+                
+                return matchesSearch && matchesClass;
+            });
+            
+            // Sort
+            filteredStudents.sort((a, b) => {
+                switch(sortOption) {
+                    case 'nama':
+                        return (a.nama || '').localeCompare(b.nama || '');
+                    case 'nama-desc':
+                        return (b.nama || '').localeCompare(a.nama || '');
+                    case 'kelas':
+                        return (a.kelas || '').localeCompare(b.kelas || '');
+                    case 'nilai':
+                        return parseFloat(b.nilai || 0) - parseFloat(a.nilai || 0);
+                    default:
+                        return 0;
+                }
+            });
+            
+            updateDisplay();
+        }
+        
+        // Show student detail modal
+        function showStudentDetail(student) {
+            const modal = document.getElementById('studentModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalContent.innerHTML = `
+                <div class="text-center mb-6">
+                    <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white font-bold text-2xl mx-auto mb-4">
+                        ${(student.nama || 'N').charAt(0).toUpperCase()}
+                    </div>
+                    <h4 class="text-xl font-bold text-gray-800">${student.nama && student.nama.trim() !== '' ? student.nama : `Siswa ${student.absen || 'Tanpa Nomor'}`}</h4>
+                    <p class="text-gray-600">${student.kelas || 'Kelas tidak tersedia'}</p>
+                </div>
+                
+                <div class="space-y-3">
+                    ${Object.entries(student).map(([key, value]) => {
+                        if (value && key !== 'nama' && key !== 'kelas') {
+                            const label = key.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+                            return `
+                                <div class="flex justify-between items-center py-2 border-b border-gray-100">
+                                    <span class="text-sm font-medium text-gray-600">${label}:</span>
+                                    <span class="text-sm text-gray-800">${value}</span>
+                                </div>
+                            `;
+                        }
+                        return '';
+                    }).join('')}
+                </div>
+                
+                <div class="mt-6 text-center">
+                    <button onclick="closeModal()" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+                        Tutup
+                    </button>
+                </div>
+            `;
+            
+            modal.classList.remove('hidden');
+        }
+        
+        // Close modal
+        function closeModal() {
+            document.getElementById('studentModal').classList.add('hidden');
+        }
+        
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', applyFilters);
+        document.getElementById('classFilter').addEventListener('change', applyFilters);
+        document.getElementById('sortOptions').addEventListener('change', applyFilters);
+        
+        // Close modal when clicking outside
+        document.getElementById('studentModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
+        });
+        
+        // Attendance Functions
+        async function startAttendance() {
+            const topik = document.getElementById('topikPembelajaran').value.trim();
+            const tanggal = document.getElementById('tanggalAbsensi').value;
+            const selectedClass = document.getElementById('attendanceClassFilter').value;
+            
+            if (!topik) {
+                alert('⚠️ Mohon masukkan topik pembelajaran terlebih dahulu!');
+                return;
+            }
+            
+            if (!selectedClass) {
+                alert('⚠️ Mohon pilih kelas untuk absensi terlebih dahulu!');
+                return;
+            }
+            
+            if (!tanggal) {
+                alert('⚠️ Mohon pilih tanggal absensi terlebih dahulu!');
+                return;
+            }
+            
+            currentTopic = topik;
+            currentDate = tanggal;
+            
+            // Show loading state
+            const startBtn = document.getElementById('startAttendanceBtn');
+            const originalText = startBtn.innerHTML;
+            startBtn.innerHTML = '⏳ Memuat siswa kelas ' + selectedClass + '...';
+            startBtn.disabled = true;
+            
+            try {
+                // Filter students from the selected class only
+                const classStudents = allStudents.filter(student => student.kelas === selectedClass);
+                
+                if (classStudents.length === 0) {
+                    alert(`⚠️ Tidak ada siswa ditemukan di kelas ${selectedClass}!`);
+                    // Reset button state
+                    startBtn.innerHTML = originalText;
+                    startBtn.disabled = false;
+                    return;
+                }
+                
+                // Initialize attendance data with students from selected class only
+                attendanceData = {};
+                classStudents.forEach((student, index) => {
+                    // Use the actual name from spreadsheet, fallback to a numbered name if empty
+                    const actualName = student.nama && student.nama.trim() !== '' ? student.nama.trim() : `Siswa ${student.absen || (index + 1)}`;
+                    const key = `student_${index + 1}_${actualName.replace(/\s+/g, '_')}`;
+                    attendanceData[key] = {
+                        nama: actualName,
+                        kelas: selectedClass,
+                        absen: student.absen || (index + 1).toString(),
+                        status: 'Hadir' // Default to present
+                    };
+                });
+                
+                // Reset button state
+                startBtn.innerHTML = originalText;
+                startBtn.disabled = false;
+                
+                showAttendanceModal();
+                
+            } catch (error) {
+                console.error('Error loading students for attendance:', error);
+                
+                // Reset button state
+                startBtn.innerHTML = originalText;
+                startBtn.disabled = false;
+                
+                alert(`⚠️ Gagal memuat siswa kelas ${selectedClass}: ${error.message}`);
+            }
+        }
+        
+        function showAttendanceModal() {
+            const modal = document.getElementById('attendanceModal');
+            const attendanceInfo = document.getElementById('attendanceInfo');
+            const attendanceList = document.getElementById('attendanceList');
+            
+            attendanceInfo.textContent = `Topik: ${currentTopic} | Tanggal: ${currentDate}`;
+            
+            // Populate attendance list
+            attendanceList.innerHTML = Object.keys(attendanceData).map(key => {
+                const student = attendanceData[key];
+                // Use the actual name from the data, which should now be correct
+                const displayName = student.nama;
+                
+                return `
+                    <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg border">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center text-white font-bold text-xs text-center p-1">
+                                ${displayName.split(' ').slice(0, 2).join(' ')}
+                            </div>
+                            <div>
+                                <h4 class="font-semibold text-gray-800 text-lg">${displayName}</h4>
+                                <p class="text-sm text-gray-600">${student.kelas} ${student.absen ? `- No. Absen ${student.absen}` : ''}</p>
+                            </div>
+                        </div>
+                        <div class="flex space-x-2">
+                            <button onclick="markAttendance('${key}', 'Hadir')" 
+                                    class="px-4 py-2 rounded-md text-sm font-medium transition-colors ${student.status === 'Hadir' ? 'bg-green-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-green-100'}">
+                                ✅ Hadir
+                            </button>
+                            <button onclick="markAttendance('${key}', 'Tidak Hadir')" 
+                                    class="px-4 py-2 rounded-md text-sm font-medium transition-colors ${student.status === 'Tidak Hadir' ? 'bg-red-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-red-100'}">
+                                ❌ Tidak Hadir
+                            </button>
+                            <button onclick="markAttendance('${key}', 'Izin')" 
+                                    class="px-4 py-2 rounded-md text-sm font-medium transition-colors ${student.status === 'Izin' ? 'bg-yellow-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-yellow-100'}">
+                                📝 Izin
+                            </button>
+                            <button onclick="markAttendance('${key}', 'Sakit')" 
+                                    class="px-4 py-2 rounded-md text-sm font-medium transition-colors ${student.status === 'Sakit' ? 'bg-orange-600 text-white' : 'bg-gray-200 text-gray-700 hover:bg-orange-100'}">
+                                🤒 Sakit
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            updateAttendanceCount();
+            modal.classList.remove('hidden');
+        }
+        
+        function markAttendance(studentKey, status) {
+            attendanceData[studentKey].status = status;
+            showAttendanceModal(); // Refresh the modal
+        }
+        
+        function markAllPresent() {
+            Object.keys(attendanceData).forEach(key => {
+                attendanceData[key].status = 'Hadir';
+            });
+            showAttendanceModal();
+        }
+        
+        function markAllAbsent() {
+            Object.keys(attendanceData).forEach(key => {
+                attendanceData[key].status = 'Tidak Hadir';
+            });
+            showAttendanceModal();
+        }
+        
+        function updateAttendanceCount() {
+            const presentCount = Object.values(attendanceData).filter(s => s.status === 'Hadir').length;
+            const absentCount = Object.values(attendanceData).filter(s => s.status !== 'Hadir').length;
+            
+            document.getElementById('presentCount').textContent = presentCount;
+            document.getElementById('absentCount').textContent = absentCount;
+        }
+        
+        async function saveAttendance() {
+            try {
+                const selectedClass = document.getElementById('attendanceClassFilter').value;
+                
+                // Show loading state
+                const saveButton = document.querySelector('button[onclick="saveAttendance()"]');
+                const originalText = saveButton.innerHTML;
+                saveButton.innerHTML = '⏳ Menyimpan ke Spreadsheet...';
+                saveButton.disabled = true;
+                
+                // Prepare data for Google Sheets
+                const attendanceRows = [];
+                
+                // Add data rows
+                Object.values(attendanceData).forEach(student => {
+                    attendanceRows.push([
+                        currentDate,
+                        currentTopic,
+                        student.kelas,
+                        student.nama,
+                        student.absen,
+                        student.status,
+                        new Date().toLocaleString('id-ID') // Timestamp
+                    ]);
+                });
+                
+                // Calculate statistics
+                const stats = {
+                    tanggal: currentDate,
+                    topik: currentTopic,
+                    kelas: selectedClass,
+                    totalSiswa: Object.keys(attendanceData).length,
+                    hadir: Object.values(attendanceData).filter(s => s.status === 'Hadir').length,
+                    tidakHadir: Object.values(attendanceData).filter(s => s.status === 'Tidak Hadir').length,
+                    izin: Object.values(attendanceData).filter(s => s.status === 'Izin').length,
+                    sakit: Object.values(attendanceData).filter(s => s.status === 'Sakit').length
+                };
+                
+                // Save to localStorage as backup first
+                const attendanceHistory = JSON.parse(localStorage.getItem('attendanceHistory') || '[]');
+                const newRecord = {
+                    id: Date.now(),
+                    timestamp: new Date().toISOString(),
+                    ...stats,
+                    data: attendanceRows
+                };
+                attendanceHistory.push(newRecord);
+                localStorage.setItem('attendanceHistory', JSON.stringify(attendanceHistory));
+                
+                // Try to save to Google Sheets using Google Apps Script Web App
+                // You need to create a Google Apps Script with this URL pattern
+                const APPS_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxvMCOUQFvFffwj046LAfO9eATF7dEqpbGIFK4jTKgEnROmrkDgcrLYJIkMFhBe7tR3kw/exec';
+                
+                try {
+                    // Prepare data for Google Apps Script
+                    const payload = {
+                        action: 'saveAttendance',
+                        spreadsheetId: SPREADSHEET_ID,
+                        sheetName: ATTENDANCE_SHEET,
+                        data: attendanceRows,
+                        headers: ['Tanggal', 'Topik', 'Kelas', 'Nama', 'No_Absen', 'Status', 'Timestamp']
+                    };
+                    
+                    // Try to send to Google Apps Script (this will fail without proper setup)
+                    const response = await fetch(APPS_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'cors',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    
+                    if (response.ok) {
+                        const result = await response.json();
+                        if (result.success) {
+                            console.log('Successfully saved to Google Sheets:', result);
+                            showSuccessNotification(stats, true); // true indicates successful Google Sheets save
+                        } else {
+                            throw new Error(result.error || 'Failed to save to Google Sheets');
+                        }
+                    } else {
+                        throw new Error('Network error when saving to Google Sheets');
+                    }
+                    
+                } catch (sheetsError) {
+                    console.warn('Google Sheets save failed, using local storage only:', sheetsError);
+                    
+                    // Show instruction modal for setting up Google Apps Script
+                    showGoogleSheetsSetupModal();
+                    
+                    // Still show success for local save
+                    showSuccessNotification(stats, false); // false indicates local save only
+                }
+                
+                // Reset button state
+                saveButton.innerHTML = originalText;
+                saveButton.disabled = false;
+                
+                closeAttendanceModal();
+                
+                // Reset form
+                document.getElementById('topikPembelajaran').value = '';
+                document.getElementById('attendanceClassFilter').value = '';
+                document.getElementById('tanggalAbsensi').value = new Date().toISOString().split('T')[0];
+                
+                console.log('Attendance saved successfully:', newRecord);
+                
+            } catch (error) {
+                console.error('Error saving attendance:', error);
+                
+                // Reset button state
+                const saveButton = document.querySelector('button[onclick="saveAttendance()"]');
+                saveButton.innerHTML = '💾 Simpan Absensi';
+                saveButton.disabled = false;
+                
+                showErrorNotification('Gagal menyimpan absensi. Data telah disimpan secara lokal sebagai backup.');
+            }
+        }
+        
+        function showSuccessNotification(stats, savedToSheets = false) {
+            // Create notification element
+            const notification = document.createElement('div');
+            const bgColor = savedToSheets ? 'bg-green-500' : 'bg-blue-500';
+            const icon = savedToSheets ? '✅' : '💾';
+            const title = savedToSheets ? 'Absensi Tersimpan ke Google Sheets!' : 'Absensi Tersimpan Lokal!';
+            const saveInfo = savedToSheets ? 
+                '<p class="text-xs mt-1 bg-green-600 px-2 py-1 rounded">📊 Data berhasil disimpan ke spreadsheet</p>' : 
+                '<p class="text-xs mt-1 bg-blue-600 px-2 py-1 rounded">⚠️ Tersimpan lokal - Lihat panduan untuk sinkronisasi</p>';
+            
+            notification.className = `fixed top-4 right-4 ${bgColor} text-white p-6 rounded-lg shadow-lg z-50 max-w-md`;
+            notification.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="text-2xl">${icon}</div>
+                    <div class="flex-1">
+                        <h4 class="font-bold text-lg mb-2">${title}</h4>
+                        <div class="text-sm space-y-1">
+                            <p><strong>Tanggal:</strong> ${stats.tanggal}</p>
+                            <p><strong>Topik:</strong> ${stats.topik}</p>
+                            <p><strong>Kelas:</strong> ${stats.kelas}</p>
+                            <div class="mt-2 pt-2 border-t border-opacity-50">
+                                <p><strong>Statistik:</strong></p>
+                                <p>• Hadir: ${stats.hadir} siswa</p>
+                                <p>• Tidak Hadir: ${stats.tidakHadir} siswa</p>
+                                <p>• Izin: ${stats.izin} siswa</p>
+                                <p>• Sakit: ${stats.sakit} siswa</p>
+                            </div>
+                            ${saveInfo}
+                        </div>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                class="mt-3 text-xs bg-opacity-80 hover:bg-opacity-100 px-3 py-1 rounded transition-all"
+                                style="background-color: rgba(0,0,0,0.2);">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            // Auto remove after 12 seconds
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 12000);
+            
+            // Add slide-in animation
+            notification.style.transform = 'translateX(100%)';
+            setTimeout(() => {
+                notification.style.transition = 'transform 0.3s ease-out';
+                notification.style.transform = 'translateX(0)';
+            }, 100);
+        }
+        
+        function showErrorNotification(message) {
+            const notification = document.createElement('div');
+            notification.className = 'fixed top-4 right-4 bg-red-500 text-white p-4 rounded-lg shadow-lg z-50 max-w-md';
+            notification.innerHTML = `
+                <div class="flex items-start space-x-3">
+                    <div class="text-xl">❌</div>
+                    <div class="flex-1">
+                        <h4 class="font-bold mb-1">Error</h4>
+                        <p class="text-sm">${message}</p>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                class="mt-2 text-xs bg-red-600 hover:bg-red-700 px-3 py-1 rounded">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                if (notification.parentElement) {
+                    notification.remove();
+                }
+            }, 8000);
+        }
+        
+        // Function to view attendance history
+        function viewAttendanceHistory() {
+            const history = JSON.parse(localStorage.getItem('attendanceHistory') || '[]');
+            if (history.length === 0) {
+                alert('📝 Belum ada riwayat absensi yang tersimpan.');
+                return;
+            }
+            
+            const historyModal = document.createElement('div');
+            historyModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            historyModal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-4xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">📋 Riwayat Absensi</h3>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                    </div>
+                    <div class="space-y-4">
+                        ${history.reverse().map(record => `
+                            <div class="border border-gray-200 rounded-lg p-4">
+                                <div class="flex justify-between items-start mb-2">
+                                    <div>
+                                        <h4 class="font-semibold text-gray-800">${record.topik}</h4>
+                                        <p class="text-sm text-gray-600">${record.kelas} • ${record.tanggal}</p>
+                                    </div>
+                                    <div class="text-right text-sm text-gray-500">
+                                        <p>Disimpan: ${new Date(record.timestamp).toLocaleString('id-ID')}</p>
+                                    </div>
+                                </div>
+                                <div class="grid grid-cols-4 gap-2 text-sm">
+                                    <div class="bg-green-50 p-2 rounded text-center">
+                                        <div class="font-bold text-green-600">${record.hadir}</div>
+                                        <div class="text-green-800">Hadir</div>
+                                    </div>
+                                    <div class="bg-red-50 p-2 rounded text-center">
+                                        <div class="font-bold text-red-600">${record.tidakHadir}</div>
+                                        <div class="text-red-800">Tidak Hadir</div>
+                                    </div>
+                                    <div class="bg-yellow-50 p-2 rounded text-center">
+                                        <div class="font-bold text-yellow-600">${record.izin}</div>
+                                        <div class="text-yellow-800">Izin</div>
+                                    </div>
+                                    <div class="bg-orange-50 p-2 rounded text-center">
+                                        <div class="font-bold text-orange-600">${record.sakit}</div>
+                                        <div class="text-orange-800">Sakit</div>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('')}
+                    </div>
+                    <div class="mt-6 text-center">
+                        <button onclick="clearAttendanceHistory()" 
+                                class="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 mr-2">
+                            🗑️ Hapus Semua Riwayat
+                        </button>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                class="bg-gray-500 text-white px-4 py-2 rounded-md hover:bg-gray-600">
+                            Tutup
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(historyModal);
+        }
+        
+        function clearAttendanceHistory() {
+            if (confirm('⚠️ Apakah Anda yakin ingin menghapus semua riwayat absensi?')) {
+                localStorage.removeItem('attendanceHistory');
+                alert('✅ Riwayat absensi berhasil dihapus.');
+                // Close modal
+                document.querySelector('.fixed.inset-0').remove();
+            }
+        }
+        
+        function showGoogleSheetsSetupModal() {
+            const setupModal = document.createElement('div');
+            setupModal.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+            setupModal.innerHTML = `
+                <div class="bg-white rounded-lg p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-2xl font-bold text-gray-800">🔧 Setup Google Sheets Integration</h3>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                    </div>
+                    
+                    <div class="space-y-4 text-sm">
+                        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                            <h4 class="font-bold text-yellow-800 mb-2">⚠️ Penting: Setup Diperlukan</h4>
+                            <p class="text-yellow-700">Untuk menyimpan absensi langsung ke Google Sheets, Anda perlu membuat Google Apps Script Web App.</p>
+                        </div>
+                        
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <h4 class="font-bold text-blue-800 mb-3">📋 Langkah-langkah Setup:</h4>
+                            <ol class="list-decimal list-inside space-y-2 text-blue-700">
+                                <li>Buka <a href="https://script.google.com" target="_blank" class="underline font-medium">script.google.com</a></li>
+                                <li>Klik "New Project" dan beri nama "Attendance Saver"</li>
+                                <li>Hapus kode default dan paste kode berikut:</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="bg-gray-50 border border-gray-200 rounded-lg p-4">
+                            <h5 class="font-bold text-gray-800 mb-2">📝 Kode Google Apps Script:</h5>
+                            <pre class="text-xs bg-gray-800 text-green-400 p-3 rounded overflow-x-auto"><code>function doPost(e) {
+  try {
+    const data = JSON.parse(e.postData.contents);
+    
+    if (data.action === 'saveAttendance') {
+      const ss = SpreadsheetApp.openById(data.spreadsheetId);
+      let sheet;
+      
+      try {
+        sheet = ss.getSheetByName(data.sheetName);
+      } catch (error) {
+        sheet = ss.insertSheet(data.sheetName);
+        sheet.getRange(1, 1, 1, data.headers.length).setValues([data.headers]);
+      }
+      
+      if (sheet.getLastRow() === 0) {
+        sheet.getRange(1, 1, 1, data.headers.length).setValues([data.headers]);
+      }
+      
+      const startRow = sheet.getLastRow() + 1;
+      sheet.getRange(startRow, 1, data.data.length, data.data[0].length).setValues(data.data);
+      
+      return ContentService
+        .createTextOutput(JSON.stringify({success: true, message: 'Data saved successfully'}))
+        .setMimeType(ContentService.MimeType.JSON);
+    }
+    
+  } catch (error) {
+    return ContentService
+      .createTextOutput(JSON.stringify({success: false, error: error.toString()}))
+      .setMimeType(ContentService.MimeType.JSON);
+  }
+}</code></pre>
+                        </div>
+                        
+                        <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+                            <h4 class="font-bold text-green-800 mb-3">🚀 Deploy Web App:</h4>
+                            <ol class="list-decimal list-inside space-y-2 text-green-700">
+                                <li>Klik "Deploy" → "New deployment"</li>
+                                <li>Pilih type: "Web app"</li>
+                                <li>Execute as: "Me"</li>
+                                <li>Who has access: "Anyone"</li>
+                                <li>Klik "Deploy" dan copy URL yang diberikan</li>
+                                <li>Ganti URL di kode dengan URL Apps Script Anda</li>
+                            </ol>
+                        </div>
+                        
+                        <div class="bg-orange-50 border border-orange-200 rounded-lg p-4">
+                            <h4 class="font-bold text-orange-800 mb-2">💡 Sementara Ini:</h4>
+                            <p class="text-orange-700">Data absensi tetap tersimpan di browser Anda dan bisa dilihat di menu "Riwayat". Setelah setup selesai, data akan otomatis tersimpan ke Google Sheets.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-6 text-center">
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700">
+                            Mengerti, Tutup
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(setupModal);
+        }
+        
+        function closeAttendanceModal() {
+            document.getElementById('attendanceModal').classList.add('hidden');
+        }
+        
+        // Set today's date as default
+        document.getElementById('tanggalAbsensi').value = new Date().toISOString().split('T')[0];
+        
+        // Load data on page load
+        loadData();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98a27f3071b4f8d6',t:'MTc1OTcyNTc5Ni4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
