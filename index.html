@@ -1,0 +1,2493 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Platform Pembelajaran Informatika SMP</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        .fade-in {
+            animation: fadeIn 0.5s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .hover-scale {
+            transition: transform 0.3s ease;
+        }
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card-shadow {
+            box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .material-content {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .material-image {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body class="bg-gray-50 font-sans">
+    <!-- Header -->
+    <header class="gradient-bg text-white py-6 px-4">
+        <div class="max-w-6xl mx-auto flex justify-between items-center">
+            <div>
+                <h1 class="text-3xl font-bold">🖥️ Informatika SMP</h1>
+                <p class="text-sm opacity-90">Platform Pembelajaran Interaktif</p>
+            </div>
+            <div id="user-info" class="text-right hidden">
+                <p class="text-sm">Selamat datang,</p>
+                <p id="user-name" class="font-bold"></p>
+                <p id="user-class" class="text-xs opacity-80"></p>
+                <button onclick="logout()" class="mt-2 bg-red-500 text-white px-3 py-1 rounded text-sm hover:bg-red-600 transition-colors">
+                    🚪 Logout
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Login Modal -->
+    <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-4">
+        <div class="bg-white rounded-xl max-w-md w-full p-6">
+            <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center">🔐 Login Platform</h3>
+            
+            <!-- Login Type Selection -->
+            <div class="flex space-x-2 mb-6">
+                <button onclick="showLoginForm('student')" id="student-login-btn" class="flex-1 py-2 px-4 rounded-lg bg-blue-500 text-white font-medium">
+                    👨‍🎓 Siswa
+                </button>
+                <button onclick="showLoginForm('teacher')" id="teacher-login-btn" class="flex-1 py-2 px-4 rounded-lg bg-gray-200 text-gray-700 font-medium hover:bg-gray-300">
+                    👩‍🏫 Guru
+                </button>
+            </div>
+
+            <!-- Student Login Form -->
+            <div id="student-login-form">
+                <form id="student-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap</label>
+                        <input type="text" id="student-name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Masukkan nama sesuai data sekolah">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Kelas</label>
+                        <select id="student-class" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Pilih Kelas</option>
+                            <option value="7">Kelas 7</option>
+                            <option value="8">Kelas 8</option>
+                            <option value="9">Kelas 9</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                        🚀 Masuk Sebagai Siswa
+                    </button>
+                </form>
+            </div>
+
+            <!-- Teacher Login Form -->
+            <div id="teacher-login-form" class="hidden">
+                <form id="teacher-form" class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Username Guru</label>
+                        <input type="text" id="teacher-username" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Masukkan username">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">Password</label>
+                        <input type="password" id="teacher-password" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-green-500" placeholder="Masukkan password">
+                    </div>
+                    <button type="submit" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors">
+                        🎓 Masuk Sebagai Guru
+                    </button>
+                </form>
+                <div class="mt-4 p-3 bg-gray-100 rounded-lg text-sm text-gray-600">
+                    <strong>Demo Login:</strong><br>
+                    Username: guru<br>
+                    Password: informatika123
+                </div>
+            </div>
+
+            <div id="loading-message" class="hidden text-center py-4">
+                <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500 mx-auto mb-2"></div>
+                <p class="text-gray-600">Memuat data dari Google Sheets...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="bg-white shadow-md sticky top-0 z-40">
+        <div class="max-w-6xl mx-auto px-4">
+            <!-- Student Navigation -->
+            <div id="student-nav" class="flex justify-center space-x-4 py-4">
+                <button onclick="showSection('dashboard')" class="nav-btn px-4 py-2 rounded-lg font-medium transition-all duration-300 bg-blue-500 text-white">
+                    🏠 Dashboard
+                </button>
+                <button onclick="showSection('materials')" class="nav-btn px-4 py-2 rounded-lg font-medium transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    📚 Materi
+                </button>
+                <button onclick="showSection('quiz')" class="nav-btn px-4 py-2 rounded-lg font-medium transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    🎯 Kuis
+                </button>
+                <button onclick="showSection('assignments')" class="nav-btn px-4 py-2 rounded-lg font-medium transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    📝 Tugas
+                </button>
+                <button onclick="showSection('attendance')" class="nav-btn px-4 py-2 rounded-lg font-medium transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    📋 Absensi
+                </button>
+                <button onclick="showSection('profile')" class="nav-btn px-4 py-2 rounded-lg font-medium transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    👤 Profil
+                </button>
+            </div>
+
+            <!-- Teacher Navigation -->
+            <div id="teacher-nav" class="flex justify-center space-x-4 py-4 hidden">
+                <button onclick="showSection('teacher-dashboard')" class="nav-btn px-4 py-2 rounded-lg font-medium transition-all duration-300 bg-green-500 text-white">
+                    📊 Dashboard Guru
+                </button>
+                <button onclick="showSection('student-monitoring')" class="nav-btn px-4 py-2 rounded-lg font-medium transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    👥 Monitoring Siswa
+                </button>
+                <button onclick="showSection('class-progress')" class="nav-btn px-4 py-2 rounded-lg font-medium transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    📈 Progress Kelas
+                </button>
+                <button onclick="showSection('materials-management')" class="nav-btn px-4 py-2 rounded-lg font-medium transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    📚 Kelola Materi
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-6xl mx-auto px-4 py-8">
+        <!-- Dashboard Section -->
+        <div id="dashboard-section" class="section fade-in">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">📊 Dashboard Pembelajaran</h2>
+                <p class="text-gray-600">Ringkasan progress belajar Anda</p>
+            </div>
+
+            <div class="grid md:grid-cols-3 gap-6 mb-8">
+                <div class="bg-white rounded-xl card-shadow p-6 text-center">
+                    <div class="text-4xl mb-4">📚</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Materi Dipelajari</h3>
+                    <p id="materials-completed" class="text-3xl font-bold text-blue-500">0</p>
+                    <p class="text-gray-600 text-sm">dari 9 materi</p>
+                </div>
+                <div class="bg-white rounded-xl card-shadow p-6 text-center">
+                    <div class="text-4xl mb-4">🎯</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Kuis Selesai</h3>
+                    <p id="quiz-completed" class="text-3xl font-bold text-green-500">0</p>
+                    <p class="text-gray-600 text-sm">dari 9 kuis</p>
+                </div>
+                <div class="bg-white rounded-xl card-shadow p-6 text-center">
+                    <div class="text-4xl mb-4">📝</div>
+                    <h3 class="text-xl font-bold text-gray-800 mb-2">Tugas Selesai</h3>
+                    <p id="assignments-completed" class="text-3xl font-bold text-purple-500">0</p>
+                    <p class="text-gray-600 text-sm">dari 9 tugas</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl card-shadow p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">📈 Progress Belajar</h3>
+                <div class="space-y-4">
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span>Kelas 7</span>
+                            <span id="grade7-progress">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="grade7-bar" class="bg-blue-500 h-2 rounded-full progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span>Kelas 8</span>
+                            <span id="grade8-progress">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="grade8-bar" class="bg-green-500 h-2 rounded-full progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="flex justify-between text-sm mb-1">
+                            <span>Kelas 9</span>
+                            <span id="grade9-progress">0%</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="grade9-bar" class="bg-purple-500 h-2 rounded-full progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Teacher Dashboard Section -->
+        <div id="teacher-dashboard-section" class="section hidden">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">📊 Dashboard Guru</h2>
+                <p class="text-gray-600">Monitoring pembelajaran siswa</p>
+            </div>
+
+            <div class="grid md:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl card-shadow p-6 text-center">
+                    <div class="text-4xl mb-4">👥</div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Total Siswa</h3>
+                    <p id="total-students" class="text-3xl font-bold text-blue-500">0</p>
+                </div>
+                <div class="bg-white rounded-xl card-shadow p-6 text-center">
+                    <div class="text-4xl mb-4">✅</div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Siswa Aktif</h3>
+                    <p id="active-students" class="text-3xl font-bold text-green-500">0</p>
+                </div>
+                <div class="bg-white rounded-xl card-shadow p-6 text-center">
+                    <div class="text-4xl mb-4">📝</div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Tugas Dikumpul</h3>
+                    <p id="submitted-assignments" class="text-3xl font-bold text-purple-500">0</p>
+                </div>
+                <div class="bg-white rounded-xl card-shadow p-6 text-center">
+                    <div class="text-4xl mb-4">📊</div>
+                    <h3 class="text-lg font-bold text-gray-800 mb-2">Rata-rata Nilai</h3>
+                    <p id="average-score" class="text-3xl font-bold text-orange-500">0</p>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl card-shadow p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">📈 Progress Per Kelas</h3>
+                <div id="class-progress-chart" class="space-y-4">
+                    <!-- Class progress will be loaded here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Student Monitoring Section -->
+        <div id="student-monitoring-section" class="section hidden">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">👥 Monitoring Siswa</h2>
+                <p class="text-gray-600">Pantau aktivitas dan progress siswa</p>
+            </div>
+
+            <div class="bg-white rounded-xl card-shadow p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">Filter Siswa</h3>
+                    <select id="class-filter" class="border border-gray-300 rounded-lg px-3 py-2" onchange="filterStudents()">
+                        <option value="">Semua Kelas</option>
+                        <option value="7">Kelas 7</option>
+                        <option value="8">Kelas 8</option>
+                        <option value="9">Kelas 9</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-xl card-shadow p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4">📋 Daftar Siswa</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full border-collapse border border-gray-300">
+                        <thead>
+                            <tr class="bg-gray-100">
+                                <th class="border border-gray-300 p-3 text-left">No</th>
+                                <th class="border border-gray-300 p-3 text-left">Nama</th>
+                                <th class="border border-gray-300 p-3 text-left">NISN</th>
+                                <th class="border border-gray-300 p-3 text-left">Kelas</th>
+                                <th class="border border-gray-300 p-3 text-left">Materi</th>
+                                <th class="border border-gray-300 p-3 text-left">Kuis</th>
+                                <th class="border border-gray-300 p-3 text-left">Tugas</th>
+                                <th class="border border-gray-300 p-3 text-left">Status</th>
+                            </tr>
+                        </thead>
+                        <tbody id="students-table">
+                            <!-- Students data will be loaded here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Class Progress Section -->
+        <div id="class-progress-section" class="section hidden">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">📈 Progress Kelas</h2>
+                <p class="text-gray-600">Analisis kemajuan pembelajaran per kelas</p>
+            </div>
+
+            <div id="class-progress-content">
+                <!-- Class progress content will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Materials Management Section -->
+        <div id="materials-management-section" class="section hidden">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">📚 Kelola Materi</h2>
+                <p class="text-gray-600">Kelola konten pembelajaran dari Google Sheets</p>
+            </div>
+
+            <div class="bg-white rounded-xl card-shadow p-6 mb-6">
+                <div class="flex justify-between items-center mb-4">
+                    <h3 class="text-xl font-bold text-gray-800">Sinkronisasi Data</h3>
+                    <button onclick="syncMaterialsFromSheets()" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                        🔄 Sync dari Google Sheets
+                    </button>
+                </div>
+                <p class="text-gray-600 text-sm">Terakhir disinkronisasi: <span id="last-sync">Belum pernah</span></p>
+            </div>
+
+            <div id="materials-management-content">
+                <!-- Materials management content will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Materials Section -->
+        <div id="materials-section" class="section hidden">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">📚 Materi Pembelajaran</h2>
+                <p class="text-gray-600">Pilih kelas untuk melihat materi</p>
+            </div>
+
+            <div class="flex justify-center space-x-4 mb-8">
+                <button onclick="showGradeMaterials(7)" class="grade-material-btn px-6 py-2 rounded-full font-semibold transition-all duration-300 bg-blue-500 text-white">
+                    Kelas 7
+                </button>
+                <button onclick="showGradeMaterials(8)" class="grade-material-btn px-6 py-2 rounded-full font-semibold transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    Kelas 8
+                </button>
+                <button onclick="showGradeMaterials(9)" class="grade-material-btn px-6 py-2 rounded-full font-semibold transition-all duration-300 bg-gray-200 text-gray-700 hover:bg-gray-300">
+                    Kelas 9
+                </button>
+            </div>
+
+            <div id="materials-content">
+                <!-- Materials will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Material Detail Modal -->
+        <div id="material-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-xl max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+                <div class="p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 id="material-title" class="text-2xl font-bold text-gray-800"></h3>
+                        <button onclick="closeMaterial()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                    </div>
+                    <div id="material-content-detail" class="material-content">
+                        <!-- Material content will be loaded here -->
+                    </div>
+                    <div class="mt-6 text-center">
+                        <button onclick="completeMaterial()" id="complete-material-btn" class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600">
+                            ✅ Tandai Selesai
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Section -->
+        <div id="quiz-section" class="section hidden">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">🎯 Kuis Interaktif</h2>
+                <p class="text-gray-600">Uji pemahaman Anda dengan kuis</p>
+            </div>
+
+            <div id="quiz-list" class="grid md:grid-cols-3 gap-6">
+                <!-- Quiz list will be loaded here -->
+            </div>
+
+            <!-- Quiz Modal -->
+            <div id="quiz-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden z-50 flex items-center justify-center p-4">
+                <div class="bg-white rounded-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                    <div class="p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 id="quiz-title" class="text-2xl font-bold text-gray-800"></h3>
+                            <button onclick="closeQuiz()" class="text-gray-500 hover:text-gray-700 text-2xl">&times;</button>
+                        </div>
+                        <div id="quiz-content">
+                            <!-- Quiz content will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Assignments Section -->
+        <div id="assignments-section" class="section hidden">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">📝 Tugas Siswa</h2>
+                <p class="text-gray-600">Kerjakan tugas untuk setiap materi</p>
+            </div>
+
+            <div id="assignments-list" class="space-y-6">
+                <!-- Assignments will be loaded here -->
+            </div>
+        </div>
+
+        <!-- Attendance Section -->
+        <div id="attendance-section" class="section hidden">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">📋 Absensi Kehadiran</h2>
+                <p class="text-gray-600">Catat kehadiran Anda saat mengikuti pembelajaran</p>
+            </div>
+
+            <div class="max-w-4xl mx-auto">
+                <!-- Attendance Form -->
+                <div class="bg-white rounded-xl card-shadow p-6 mb-8">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6">✍️ Isi Absensi Hari Ini</h3>
+                    <form id="attendance-form" class="space-y-4">
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap</label>
+                                <input type="text" id="attendance-name" readonly class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">NISN</label>
+                                <input type="text" id="attendance-nisn" readonly class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50">
+                            </div>
+                        </div>
+                        <div class="grid md:grid-cols-2 gap-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Topik Pembelajaran</label>
+                                <select id="attendance-topic" required class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                                    <option value="">Pilih Topik Pembelajaran</option>
+                                    <optgroup label="Kelas 7">
+                                        <option value="Pengenalan Komputer">Pengenalan Komputer</option>
+                                        <option value="Sistem Operasi">Sistem Operasi</option>
+                                        <option value="Internet Dasar">Internet Dasar</option>
+                                    </optgroup>
+                                    <optgroup label="Kelas 8">
+                                        <option value="Algoritma">Algoritma</option>
+                                        <option value="Pemrograman Scratch">Pemrograman Scratch</option>
+                                        <option value="Database Dasar">Database Dasar</option>
+                                    </optgroup>
+                                    <optgroup label="Kelas 9">
+                                        <option value="HTML & CSS">HTML & CSS</option>
+                                        <option value="JavaScript">JavaScript</option>
+                                        <option value="AI & Machine Learning">AI & Machine Learning</option>
+                                    </optgroup>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-2">Jenjang Kelas</label>
+                                <input type="text" id="attendance-grade" readonly class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-50">
+                            </div>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Catatan (Opsional)</label>
+                            <textarea id="attendance-notes" class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" rows="3" placeholder="Tambahkan catatan pembelajaran hari ini..."></textarea>
+                        </div>
+                        <div class="text-center">
+                            <button type="submit" class="bg-green-500 text-white px-6 py-2 rounded-lg hover:bg-green-600 transition-colors">
+                                📝 Submit Absensi
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Attendance History -->
+                <div class="bg-white rounded-xl card-shadow p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-6">📊 Riwayat Kehadiran</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full border-collapse border border-gray-300">
+                            <thead>
+                                <tr class="bg-gray-100">
+                                    <th class="border border-gray-300 p-3 text-left">No</th>
+                                    <th class="border border-gray-300 p-3 text-left">Tanggal</th>
+                                    <th class="border border-gray-300 p-3 text-left">Topik Pembelajaran</th>
+                                    <th class="border border-gray-300 p-3 text-left">Jenjang</th>
+                                    <th class="border border-gray-300 p-3 text-left">Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="attendance-history">
+                                <!-- Attendance history will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <div id="no-attendance" class="text-center text-gray-500 py-8 hidden">
+                        📋 Belum ada riwayat kehadiran
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Profile Section -->
+        <div id="profile-section" class="section hidden">
+            <div class="text-center mb-8">
+                <h2 class="text-3xl font-bold text-gray-800 mb-4">👤 Profil Siswa</h2>
+            </div>
+
+            <div class="max-w-2xl mx-auto">
+                <div class="bg-white rounded-xl card-shadow p-6 mb-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">📋 Data Pribadi</h3>
+                    <div class="space-y-3">
+                        <div class="flex justify-between">
+                            <span class="font-medium">Nama:</span>
+                            <span id="profile-name"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="font-medium">NISN:</span>
+                            <span id="profile-nisn"></span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="font-medium">Kelas:</span>
+                            <span id="profile-class"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-xl card-shadow p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">📊 Statistik Belajar</h3>
+                    <div id="profile-stats" class="space-y-3">
+                        <!-- Stats will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-gray-800 text-white py-8 mt-12">
+        <div class="max-w-6xl mx-auto px-4 text-center">
+            <p class="text-lg mb-2">🎓 Platform Pembelajaran Informatika SMP</p>
+            <p class="text-gray-400">Belajar dengan menyenangkan dan interaktif</p>
+        </div>
+    </footer>
+
+    <script>
+        // Google Sheets Configuration
+        const SHEET_ID = '1InK-vJq3hx0dIhpJV0DvSjauMzKrvnfj-1fDI6vb4tU';
+        const API_KEY = 'AIzaSyDeZZmBF-1jK4enK0Wcn2tzn-qmYJfyoIo';
+        const SHEET_NAME = 'siswa';
+        
+        // Data structures
+        let materials = {
+            7: [
+                { 
+                    id: 'computer-basics', 
+                    title: '🖥️ Pengenalan Komputer', 
+                    description: 'Mengenal bagian-bagian komputer dan fungsinya',
+                    content: `
+                        <h4 class="text-lg font-bold mb-4">Pengenalan Komputer</h4>
+                        <div class="mb-4">
+                            <svg class="material-image mx-auto" width="300" height="200" viewBox="0 0 300 200">
+                                <rect x="50" y="80" width="200" height="120" fill="#e5e7eb" stroke="#374151" stroke-width="2" rx="5"/>
+                                <rect x="60" y="90" width="180" height="100" fill="#1f2937" rx="3"/>
+                                <rect x="70" y="100" width="160" height="80" fill="#3b82f6" rx="2"/>
+                                <rect x="130" y="200" width="40" height="10" fill="#6b7280"/>
+                                <ellipse cx="150" cy="220" rx="30" ry="5" fill="#9ca3af"/>
+                                <text x="150" y="130" text-anchor="middle" fill="white" font-size="12">Monitor</text>
+                            </svg>
+                        </div>
+                        <p class="mb-4">Komputer adalah perangkat elektronik yang dapat menerima, memproses, dan menghasilkan informasi. Komputer terdiri dari beberapa komponen utama:</p>
+                        <ul class="list-disc list-inside space-y-2 mb-4">
+                            <li><strong>CPU (Central Processing Unit):</strong> Otak komputer yang memproses data</li>
+                            <li><strong>RAM (Random Access Memory):</strong> Memori sementara untuk menyimpan data yang sedang diproses</li>
+                            <li><strong>Storage:</strong> Penyimpanan permanen seperti hard disk atau SSD</li>
+                            <li><strong>Input Device:</strong> Perangkat masukan seperti keyboard dan mouse</li>
+                            <li><strong>Output Device:</strong> Perangkat keluaran seperti monitor dan speaker</li>
+                        </ul>
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h5 class="font-bold mb-2">💡 Tahukah Anda?</h5>
+                            <p>Komputer pertama bernama ENIAC dibuat tahun 1946 dan beratnya mencapai 30 ton!</p>
+                        </div>
+                    `
+                },
+                { 
+                    id: 'operating-system', 
+                    title: '⚙️ Sistem Operasi', 
+                    description: 'Memahami Windows, macOS, dan Linux',
+                    content: `
+                        <h4 class="text-lg font-bold mb-4">Sistem Operasi</h4>
+                        <div class="mb-4">
+                            <svg class="material-image mx-auto" width="300" height="200" viewBox="0 0 300 200">
+                                <rect x="20" y="40" width="80" height="120" fill="#0078d4" rx="5"/>
+                                <text x="60" y="105" text-anchor="middle" fill="white" font-size="10">Windows</text>
+                                <rect x="110" y="40" width="80" height="120" fill="#000000" rx="5"/>
+                                <text x="150" y="105" text-anchor="middle" fill="white" font-size="10">macOS</text>
+                                <rect x="200" y="40" width="80" height="120" fill="#ff6600" rx="5"/>
+                                <text x="240" y="105" text-anchor="middle" fill="white" font-size="10">Linux</text>
+                            </svg>
+                        </div>
+                        <p class="mb-4">Sistem operasi adalah perangkat lunak yang mengelola hardware dan software komputer. Fungsi utama sistem operasi:</p>
+                        <ul class="list-disc list-inside space-y-2 mb-4">
+                            <li>Mengelola memori dan prosesor</li>
+                            <li>Mengatur file dan folder</li>
+                            <li>Menyediakan antarmuka pengguna</li>
+                            <li>Menjalankan aplikasi</li>
+                            <li>Mengatur keamanan sistem</li>
+                        </ul>
+                        <h5 class="font-bold mb-2">Jenis-jenis Sistem Operasi:</h5>
+                        <div class="grid md:grid-cols-3 gap-4 mb-4">
+                            <div class="bg-blue-50 p-3 rounded">
+                                <h6 class="font-bold">Windows</h6>
+                                <p class="text-sm">Dikembangkan Microsoft, paling populer untuk PC</p>
+                            </div>
+                            <div class="bg-gray-50 p-3 rounded">
+                                <h6 class="font-bold">macOS</h6>
+                                <p class="text-sm">Sistem operasi eksklusif untuk komputer Apple</p>
+                            </div>
+                            <div class="bg-orange-50 p-3 rounded">
+                                <h6 class="font-bold">Linux</h6>
+                                <p class="text-sm">Open source, gratis dan dapat dimodifikasi</p>
+                            </div>
+                        </div>
+                    `
+                },
+                { 
+                    id: 'internet-basics', 
+                    title: '🌐 Internet Dasar', 
+                    description: 'Pengenalan internet dan cara menggunakannya',
+                    content: `
+                        <h4 class="text-lg font-bold mb-4">Internet Dasar</h4>
+                        <div class="mb-4">
+                            <svg class="material-image mx-auto" width="300" height="200" viewBox="0 0 300 200">
+                                <circle cx="150" cy="100" r="80" fill="none" stroke="#3b82f6" stroke-width="2"/>
+                                <circle cx="150" cy="100" r="50" fill="none" stroke="#10b981" stroke-width="2"/>
+                                <circle cx="150" cy="100" r="20" fill="#3b82f6"/>
+                                <circle cx="80" cy="60" r="15" fill="#ef4444"/>
+                                <circle cx="220" cy="60" r="15" fill="#ef4444"/>
+                                <circle cx="80" cy="140" r="15" fill="#ef4444"/>
+                                <circle cx="220" cy="140" r="15" fill="#ef4444"/>
+                                <line x1="150" y1="100" x2="80" y2="60" stroke="#6b7280" stroke-width="1"/>
+                                <line x1="150" y1="100" x2="220" y2="60" stroke="#6b7280" stroke-width="1"/>
+                                <line x1="150" y1="100" x2="80" y2="140" stroke="#6b7280" stroke-width="1"/>
+                                <line x1="150" y1="100" x2="220" y2="140" stroke="#6b7280" stroke-width="1"/>
+                            </svg>
+                        </div>
+                        <p class="mb-4">Internet adalah jaringan komputer global yang menghubungkan jutaan perangkat di seluruh dunia. Internet memungkinkan kita untuk:</p>
+                        <ul class="list-disc list-inside space-y-2 mb-4">
+                            <li>Mengakses informasi dari berbagai sumber</li>
+                            <li>Berkomunikasi melalui email, chat, video call</li>
+                            <li>Berbelanja online</li>
+                            <li>Streaming musik dan video</li>
+                            <li>Bermain game online</li>
+                            <li>Belajar melalui platform e-learning</li>
+                        </ul>
+                        <h5 class="font-bold mb-2">Komponen Internet:</h5>
+                        <div class="space-y-2 mb-4">
+                            <div class="bg-blue-50 p-3 rounded">
+                                <strong>WWW (World Wide Web):</strong> Sistem informasi yang dapat diakses melalui browser
+                            </div>
+                            <div class="bg-green-50 p-3 rounded">
+                                <strong>ISP (Internet Service Provider):</strong> Penyedia layanan internet
+                            </div>
+                            <div class="bg-yellow-50 p-3 rounded">
+                                <strong>Browser:</strong> Aplikasi untuk mengakses website (Chrome, Firefox, Safari)
+                            </div>
+                        </div>
+                        <div class="bg-red-50 p-4 rounded-lg">
+                            <h5 class="font-bold mb-2">⚠️ Keamanan Internet:</h5>
+                            <ul class="list-disc list-inside text-sm">
+                                <li>Jangan berikan informasi pribadi sembarangan</li>
+                                <li>Gunakan password yang kuat</li>
+                                <li>Hati-hati dengan link mencurigakan</li>
+                                <li>Verifikasi sumber informasi</li>
+                            </ul>
+                        </div>
+                    `
+                }
+            ],
+            8: [
+                { 
+                    id: 'algorithms', 
+                    title: '🔄 Algoritma', 
+                    description: 'Belajar logika pemrograman dan flowchart',
+                    content: `
+                        <h4 class="text-lg font-bold mb-4">Algoritma dan Logika Pemrograman</h4>
+                        <div class="mb-4">
+                            <svg class="material-image mx-auto" width="300" height="250" viewBox="0 0 300 250">
+                                <ellipse cx="150" cy="30" rx="40" ry="15" fill="#10b981" stroke="#065f46" stroke-width="2"/>
+                                <text x="150" y="35" text-anchor="middle" fill="white" font-size="10">MULAI</text>
+                                <line x1="150" y1="45" x2="150" y2="65" stroke="#374151" stroke-width="2" marker-end="url(#arrowhead)"/>
+                                <rect x="110" y="65" width="80" height="30" fill="#3b82f6" stroke="#1e40af" stroke-width="2" rx="5"/>
+                                <text x="150" y="82" text-anchor="middle" fill="white" font-size="9">Input Data</text>
+                                <line x1="150" y1="95" x2="150" y2="115" stroke="#374151" stroke-width="2"/>
+                                <polygon points="150,115 130,135 150,155 170,135" fill="#f59e0b" stroke="#d97706" stroke-width="2"/>
+                                <text x="150" y="138" text-anchor="middle" fill="white" font-size="8">Kondisi?</text>
+                                <line x1="130" y1="135" x2="80" y2="135" stroke="#374151" stroke-width="2"/>
+                                <text x="105" y="130" text-anchor="middle" font-size="8">Ya</text>
+                                <line x1="170" y1="135" x2="220" y2="135" stroke="#374151" stroke-width="2"/>
+                                <text x="195" y="130" text-anchor="middle" font-size="8">Tidak</text>
+                                <rect x="40" y="120" width="80" height="30" fill="#ef4444" stroke="#dc2626" stroke-width="2" rx="5"/>
+                                <text x="80" y="137" text-anchor="middle" fill="white" font-size="9">Proses A</text>
+                                <rect x="180" y="120" width="80" height="30" fill="#8b5cf6" stroke="#7c3aed" stroke-width="2" rx="5"/>
+                                <text x="220" y="137" text-anchor="middle" fill="white" font-size="9">Proses B</text>
+                                <line x1="80" y1="150" x2="80" y2="180" stroke="#374151" stroke-width="2"/>
+                                <line x1="220" y1="150" x2="220" y2="180" stroke="#374151" stroke-width="2"/>
+                                <line x1="80" y1="180" x2="150" y2="180" stroke="#374151" stroke-width="2"/>
+                                <line x1="220" y1="180" x2="150" y2="180" stroke="#374151" stroke-width="2"/>
+                                <line x1="150" y1="180" x2="150" y2="200" stroke="#374151" stroke-width="2"/>
+                                <ellipse cx="150" cy="215" rx="40" ry="15" fill="#dc2626" stroke="#991b1b" stroke-width="2"/>
+                                <text x="150" y="220" text-anchor="middle" fill="white" font-size="10">SELESAI</text>
+                                <defs>
+                                    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+                                        <polygon points="0 0, 10 3.5, 0 7" fill="#374151"/>
+                                    </marker>
+                                </defs>
+                            </svg>
+                        </div>
+                        <p class="mb-4">Algoritma adalah urutan langkah-langkah logis untuk menyelesaikan suatu masalah. Dalam pemrograman, algoritma sangat penting untuk:</p>
+                        <ul class="list-disc list-inside space-y-2 mb-4">
+                            <li>Memecahkan masalah secara sistematis</li>
+                            <li>Membuat program yang efisien</li>
+                            <li>Memudahkan debugging dan maintenance</li>
+                            <li>Komunikasi antar programmer</li>
+                        </ul>
+                        <h5 class="font-bold mb-2">Cara Menulis Algoritma:</h5>
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-blue-50 p-3 rounded">
+                                <h6 class="font-bold">1. Pseudocode</h6>
+                                <p class="text-sm">Algoritma ditulis dalam bahasa sehari-hari yang mudah dipahami</p>
+                                <div class="bg-white p-2 mt-2 rounded text-xs font-mono">
+                                    MULAI<br>
+                                    INPUT angka1, angka2<br>
+                                    jumlah = angka1 + angka2<br>
+                                    OUTPUT jumlah<br>
+                                    SELESAI
+                                </div>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded">
+                                <h6 class="font-bold">2. Flowchart</h6>
+                                <p class="text-sm">Algoritma digambarkan dalam bentuk diagram alir</p>
+                                <div class="text-xs mt-2">
+                                    • Oval: Mulai/Selesai<br>
+                                    • Persegi: Proses<br>
+                                    • Belah ketupat: Keputusan<br>
+                                    • Jajar genjang: Input/Output
+                                </div>
+                            </div>
+                        </div>
+                        <div class="bg-yellow-50 p-4 rounded-lg">
+                            <h5 class="font-bold mb-2">🎯 Latihan:</h5>
+                            <p class="text-sm">Coba buat algoritma untuk menentukan bilangan terbesar dari 3 angka!</p>
+                        </div>
+                    `
+                },
+                { 
+                    id: 'scratch-programming', 
+                    title: '🎮 Pemrograman Scratch', 
+                    description: 'Membuat game dan animasi dengan Scratch',
+                    content: `
+                        <h4 class="text-lg font-bold mb-4">Pemrograman dengan Scratch</h4>
+                        <div class="mb-4">
+                            <svg class="material-image mx-auto" width="300" height="200" viewBox="0 0 300 200">
+                                <rect x="20" y="20" width="260" height="160" fill="#4a90e2" stroke="#2c5aa0" stroke-width="2" rx="10"/>
+                                <rect x="30" y="30" width="80" height="140" fill="#ffffff" rx="5"/>
+                                <rect x="120" y="30" width="150" height="100" fill="#f0f0f0" rx="5"/>
+                                <rect x="120" y="140" width="150" height="40" fill="#e0e0e0" rx="5"/>
+                                <circle cx="195" cy="80" r="25" fill="#ff6b35"/>
+                                <polygon points="185,75 185,85 205,80" fill="#ffffff"/>
+                                <rect x="35" y="35" width="70" height="15" fill="#ff6b35" rx="3"/>
+                                <rect x="35" y="55" width="70" height="15" fill="#4caf50" rx="3"/>
+                                <rect x="35" y="75" width="70" height="15" fill="#2196f3" rx="3"/>
+                                <rect x="35" y="95" width="70" height="15" fill="#ff9800" rx="3"/>
+                                <text x="150" y="15" text-anchor="middle" font-size="12" font-weight="bold">Scratch IDE</text>
+                            </svg>
+                        </div>
+                        <p class="mb-4">Scratch adalah bahasa pemrograman visual yang dikembangkan MIT untuk mengajarkan konsep programming kepada anak-anak. Dengan Scratch, kita bisa:</p>
+                        <ul class="list-disc list-inside space-y-2 mb-4">
+                            <li>Membuat game interaktif</li>
+                            <li>Membuat animasi dan cerita</li>
+                            <li>Belajar konsep programming tanpa coding</li>
+                            <li>Mengembangkan kreativitas dan logika</li>
+                        </ul>
+                        <h5 class="font-bold mb-2">Komponen Scratch:</h5>
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-orange-50 p-3 rounded">
+                                <h6 class="font-bold text-orange-600">🎭 Sprite</h6>
+                                <p class="text-sm">Karakter atau objek yang bisa diprogram untuk bergerak dan berinteraksi</p>
+                            </div>
+                            <div class="bg-blue-50 p-3 rounded">
+                                <h6 class="font-bold text-blue-600">🎨 Stage</h6>
+                                <p class="text-sm">Area tempat sprite bergerak dan berinteraksi</p>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded">
+                                <h6 class="font-bold text-green-600">🧩 Blocks</h6>
+                                <p class="text-sm">Blok-blok kode yang bisa disusun untuk membuat program</p>
+                            </div>
+                            <div class="bg-purple-50 p-3 rounded">
+                                <h6 class="font-bold text-purple-600">📜 Scripts</h6>
+                                <p class="text-sm">Kumpulan blok yang disusun untuk membuat program</p>
+                            </div>
+                        </div>
+                        <h5 class="font-bold mb-2">Jenis-jenis Blok:</h5>
+                        <div class="space-y-2 mb-4">
+                            <div class="flex items-center space-x-2">
+                                <div class="w-4 h-4 bg-blue-500 rounded"></div>
+                                <span class="text-sm"><strong>Motion:</strong> Mengatur pergerakan sprite</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-4 h-4 bg-purple-500 rounded"></div>
+                                <span class="text-sm"><strong>Looks:</strong> Mengatur tampilan sprite</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-4 h-4 bg-pink-500 rounded"></div>
+                                <span class="text-sm"><strong>Sound:</strong> Mengatur suara</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-4 h-4 bg-orange-500 rounded"></div>
+                                <span class="text-sm"><strong>Events:</strong> Memulai program dengan event</span>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <div class="w-4 h-4 bg-yellow-500 rounded"></div>
+                                <span class="text-sm"><strong>Control:</strong> Mengatur alur program</span>
+                            </div>
+                        </div>
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h5 class="font-bold mb-2">🚀 Project Pertama:</h5>
+                            <p class="text-sm">Coba buat sprite kucing bergerak ke kanan ketika tombol panah kanan ditekan!</p>
+                        </div>
+                    `
+                },
+                { 
+                    id: 'database-basics', 
+                    title: '🗄️ Database Dasar', 
+                    description: 'Pengenalan database dan cara mengelola data',
+                    content: `
+                        <h4 class="text-lg font-bold mb-4">Database Dasar</h4>
+                        <div class="mb-4">
+                            <svg class="material-image mx-auto" width="300" height="200" viewBox="0 0 300 200">
+                                <ellipse cx="150" cy="50" rx="80" ry="20" fill="#3b82f6" stroke="#1e40af" stroke-width="2"/>
+                                <rect x="70" y="50" width="160" height="40" fill="#60a5fa"/>
+                                <ellipse cx="150" cy="90" rx="80" ry="20" fill="#3b82f6" stroke="#1e40af" stroke-width="2"/>
+                                <ellipse cx="150" cy="110" rx="80" ry="20" fill="#3b82f6" stroke="#1e40af" stroke-width="2"/>
+                                <rect x="70" y="110" width="160" height="40" fill="#60a5fa"/>
+                                <ellipse cx="150" cy="150" rx="80" ry="20" fill="#3b82f6" stroke="#1e40af" stroke-width="2"/>
+                                <text x="150" y="55" text-anchor="middle" fill="white" font-size="10">Tabel Siswa</text>
+                                <text x="150" y="115" text-anchor="middle" fill="white" font-size="10">Tabel Kelas</text>
+                                <text x="150" y="155" text-anchor="middle" fill="white" font-size="10">Tabel Nilai</text>
+                                <text x="150" y="180" text-anchor="middle" font-size="12" font-weight="bold">Database Sekolah</text>
+                            </svg>
+                        </div>
+                        <p class="mb-4">Database adalah kumpulan data yang terorganisir dan tersimpan secara sistematis dalam komputer. Database memungkinkan kita untuk:</p>
+                        <ul class="list-disc list-inside space-y-2 mb-4">
+                            <li>Menyimpan data dalam jumlah besar</li>
+                            <li>Mengakses data dengan cepat</li>
+                            <li>Mengelola data secara efisien</li>
+                            <li>Menjaga keamanan dan integritas data</li>
+                            <li>Berbagi data antar pengguna</li>
+                        </ul>
+                        <h5 class="font-bold mb-2">Komponen Database:</h5>
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-blue-50 p-3 rounded">
+                                <h6 class="font-bold">📊 Tabel</h6>
+                                <p class="text-sm">Struktur yang menyimpan data dalam baris dan kolom</p>
+                                <div class="mt-2 text-xs">
+                                    <table class="w-full border border-gray-300">
+                                        <tr class="bg-gray-100">
+                                            <th class="border border-gray-300 p-1">ID</th>
+                                            <th class="border border-gray-300 p-1">Nama</th>
+                                            <th class="border border-gray-300 p-1">Kelas</th>
+                                        </tr>
+                                        <tr>
+                                            <td class="border border-gray-300 p-1">1</td>
+                                            <td class="border border-gray-300 p-1">Andi</td>
+                                            <td class="border border-gray-300 p-1">7A</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded">
+                                <h6 class="font-bold">🔑 Primary Key</h6>
+                                <p class="text-sm">Kolom unik yang mengidentifikasi setiap baris dalam tabel</p>
+                            </div>
+                            <div class="bg-yellow-50 p-3 rounded">
+                                <h6 class="font-bold">📝 Record</h6>
+                                <p class="text-sm">Satu baris data dalam tabel (horizontal)</p>
+                            </div>
+                            <div class="bg-purple-50 p-3 rounded">
+                                <h6 class="font-bold">📋 Field</h6>
+                                <p class="text-sm">Satu kolom data dalam tabel (vertikal)</p>
+                            </div>
+                        </div>
+                        <h5 class="font-bold mb-2">Operasi CRUD:</h5>
+                        <div class="space-y-2 mb-4">
+                            <div class="bg-green-100 p-2 rounded flex items-center">
+                                <span class="font-bold text-green-600 mr-2">C</span>
+                                <span class="text-sm"><strong>Create:</strong> Menambah data baru</span>
+                            </div>
+                            <div class="bg-blue-100 p-2 rounded flex items-center">
+                                <span class="font-bold text-blue-600 mr-2">R</span>
+                                <span class="text-sm"><strong>Read:</strong> Membaca/menampilkan data</span>
+                            </div>
+                            <div class="bg-yellow-100 p-2 rounded flex items-center">
+                                <span class="font-bold text-yellow-600 mr-2">U</span>
+                                <span class="text-sm"><strong>Update:</strong> Mengubah data yang ada</span>
+                            </div>
+                            <div class="bg-red-100 p-2 rounded flex items-center">
+                                <span class="font-bold text-red-600 mr-2">D</span>
+                                <span class="text-sm"><strong>Delete:</strong> Menghapus data</span>
+                            </div>
+                        </div>
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h5 class="font-bold mb-2">💡 Contoh Penggunaan:</h5>
+                            <p class="text-sm">Database digunakan di mana-mana: media sosial, e-commerce, perbankan, sekolah, rumah sakit, dan masih banyak lagi!</p>
+                        </div>
+                    `
+                }
+            ],
+            9: [
+                { 
+                    id: 'html-css', 
+                    title: '🌐 HTML & CSS', 
+                    description: 'Membuat website sederhana dengan HTML dan CSS',
+                    content: `
+                        <h4 class="text-lg font-bold mb-4">HTML & CSS untuk Web Development</h4>
+                        <div class="mb-4">
+                            <svg class="material-image mx-auto" width="300" height="200" viewBox="0 0 300 200">
+                                <rect x="20" y="20" width="260" height="160" fill="#ffffff" stroke="#e5e7eb" stroke-width="2" rx="5"/>
+                                <rect x="30" y="30" width="240" height="30" fill="#3b82f6" rx="3"/>
+                                <text x="150" y="48" text-anchor="middle" fill="white" font-size="12">Website Header</text>
+                                <rect x="30" y="70" width="70" height="100" fill="#10b981" rx="3"/>
+                                <text x="65" y="125" text-anchor="middle" fill="white" font-size="10">Sidebar</text>
+                                <rect x="110" y="70" width="160" height="60" fill="#f59e0b" rx="3"/>
+                                <text x="190" y="105" text-anchor="middle" fill="white" font-size="10">Main Content</text>
+                                <rect x="110" y="140" width="160" height="30" fill="#ef4444" rx="3"/>
+                                <text x="190" y="158" text-anchor="middle" fill="white" font-size="10">Footer</text>
+                                <text x="150" y="195" text-anchor="middle" font-size="10" font-weight="bold">Layout Website</text>
+                            </svg>
+                        </div>
+                        <p class="mb-4">HTML dan CSS adalah fondasi dari web development. HTML memberikan struktur, sedangkan CSS memberikan styling dan layout.</p>
+                        
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-orange-50 p-4 rounded">
+                                <h5 class="font-bold text-orange-600 mb-2">📄 HTML (HyperText Markup Language)</h5>
+                                <ul class="text-sm space-y-1">
+                                    <li>• Struktur dan konten website</li>
+                                    <li>• Menggunakan tag dan elemen</li>
+                                    <li>• Semantic markup</li>
+                                </ul>
+                                <div class="bg-white p-2 mt-2 rounded text-xs font-mono">
+                                    &lt;h1&gt;Judul&lt;/h1&gt;<br>
+                                    &lt;p&gt;Paragraf&lt;/p&gt;<br>
+                                    &lt;a href="#"&gt;Link&lt;/a&gt;
+                                </div>
+                            </div>
+                            <div class="bg-blue-50 p-4 rounded">
+                                <h5 class="font-bold text-blue-600 mb-2">🎨 CSS (Cascading Style Sheets)</h5>
+                                <ul class="text-sm space-y-1">
+                                    <li>• Styling dan layout</li>
+                                    <li>• Warna, font, spacing</li>
+                                    <li>• Responsive design</li>
+                                </ul>
+                                <div class="bg-white p-2 mt-2 rounded text-xs font-mono">
+                                    h1 {<br>
+                                    &nbsp;&nbsp;color: blue;<br>
+                                    &nbsp;&nbsp;font-size: 24px;<br>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="font-bold mb-2">Tag HTML Penting:</h5>
+                        <div class="grid md:grid-cols-3 gap-2 mb-4 text-sm">
+                            <div class="bg-gray-100 p-2 rounded">
+                                <code>&lt;html&gt;</code> - Root element
+                            </div>
+                            <div class="bg-gray-100 p-2 rounded">
+                                <code>&lt;head&gt;</code> - Metadata
+                            </div>
+                            <div class="bg-gray-100 p-2 rounded">
+                                <code>&lt;body&gt;</code> - Konten utama
+                            </div>
+                            <div class="bg-gray-100 p-2 rounded">
+                                <code>&lt;h1-h6&gt;</code> - Heading
+                            </div>
+                            <div class="bg-gray-100 p-2 rounded">
+                                <code>&lt;p&gt;</code> - Paragraf
+                            </div>
+                            <div class="bg-gray-100 p-2 rounded">
+                                <code>&lt;div&gt;</code> - Container
+                            </div>
+                        </div>
+
+                        <h5 class="font-bold mb-2">CSS Properties:</h5>
+                        <div class="grid md:grid-cols-2 gap-2 mb-4 text-sm">
+                            <div class="bg-blue-100 p-2 rounded">
+                                <strong>color:</strong> Warna teks
+                            </div>
+                            <div class="bg-blue-100 p-2 rounded">
+                                <strong>background:</strong> Warna latar
+                            </div>
+                            <div class="bg-blue-100 p-2 rounded">
+                                <strong>font-size:</strong> Ukuran font
+                            </div>
+                            <div class="bg-blue-100 p-2 rounded">
+                                <strong>margin:</strong> Jarak luar
+                            </div>
+                            <div class="bg-blue-100 p-2 rounded">
+                                <strong>padding:</strong> Jarak dalam
+                            </div>
+                            <div class="bg-blue-100 p-2 rounded">
+                                <strong>border:</strong> Garis tepi
+                            </div>
+                        </div>
+
+                        <div class="bg-green-50 p-4 rounded-lg">
+                            <h5 class="font-bold mb-2">🎯 Project Pertama:</h5>
+                            <p class="text-sm">Buat halaman web sederhana dengan header, konten utama, dan footer menggunakan HTML dan CSS!</p>
+                        </div>
+                    `
+                },
+                { 
+                    id: 'javascript', 
+                    title: '⚡ JavaScript', 
+                    description: 'Membuat website interaktif dengan JavaScript',
+                    content: `
+                        <h4 class="text-lg font-bold mb-4">JavaScript untuk Interaktivitas Web</h4>
+                        <div class="mb-4">
+                            <svg class="material-image mx-auto" width="300" height="200" viewBox="0 0 300 200">
+                                <rect x="20" y="20" width="260" height="160" fill="#f7df1e" stroke="#d4af37" stroke-width="2" rx="10"/>
+                                <text x="150" y="50" text-anchor="middle" font-size="24" font-weight="bold" fill="#323330">JS</text>
+                                <rect x="40" y="70" width="80" height="30" fill="#323330" rx="5"/>
+                                <text x="80" y="88" text-anchor="middle" fill="#f7df1e" font-size="10">Variables</text>
+                                <rect x="130" y="70" width="80" height="30" fill="#323330" rx="5"/>
+                                <text x="170" y="88" text-anchor="middle" fill="#f7df1e" font-size="10">Functions</text>
+                                <rect x="220" y="70" width="50" height="30" fill="#323330" rx="5"/>
+                                <text x="245" y="88" text-anchor="middle" fill="#f7df1e" font-size="10">Events</text>
+                                <rect x="40" y="110" width="100" height="30" fill="#323330" rx="5"/>
+                                <text x="90" y="128" text-anchor="middle" fill="#f7df1e" font-size="10">DOM Manipulation</text>
+                                <rect x="150" y="110" width="80" height="30" fill="#323330" rx="5"/>
+                                <text x="190" y="128" text-anchor="middle" fill="#f7df1e" font-size="10">Conditions</text>
+                                <rect x="80" y="150" width="140" height="20" fill="#323330" rx="5"/>
+                                <text x="150" y="162" text-anchor="middle" fill="#f7df1e" font-size="9">Interactive Web Development</text>
+                            </svg>
+                        </div>
+                        <p class="mb-4">JavaScript adalah bahasa pemrograman yang membuat website menjadi interaktif dan dinamis. Dengan JavaScript, kita bisa:</p>
+                        <ul class="list-disc list-inside space-y-2 mb-4">
+                            <li>Merespons interaksi pengguna (klik, hover, input)</li>
+                            <li>Mengubah konten halaman secara dinamis</li>
+                            <li>Validasi form dan input pengguna</li>
+                            <li>Membuat animasi dan efek visual</li>
+                            <li>Berkomunikasi dengan server (AJAX)</li>
+                        </ul>
+
+                        <h5 class="font-bold mb-2">Konsep Dasar JavaScript:</h5>
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-yellow-50 p-3 rounded">
+                                <h6 class="font-bold text-yellow-600">📦 Variables</h6>
+                                <p class="text-sm mb-2">Menyimpan data dan nilai</p>
+                                <div class="bg-white p-2 rounded text-xs font-mono">
+                                    let nama = "Andi";<br>
+                                    const umur = 15;<br>
+                                    var kelas = "9A";
+                                </div>
+                            </div>
+                            <div class="bg-blue-50 p-3 rounded">
+                                <h6 class="font-bold text-blue-600">⚡ Functions</h6>
+                                <p class="text-sm mb-2">Blok kode yang dapat digunakan berulang</p>
+                                <div class="bg-white p-2 rounded text-xs font-mono">
+                                    function sapa(nama) {<br>
+                                    &nbsp;&nbsp;return "Halo " + nama;<br>
+                                    }
+                                </div>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded">
+                                <h6 class="font-bold text-green-600">🎯 Events</h6>
+                                <p class="text-sm mb-2">Merespons aksi pengguna</p>
+                                <div class="bg-white p-2 rounded text-xs font-mono">
+                                    button.onclick = function() {<br>
+                                    &nbsp;&nbsp;alert("Diklik!");<br>
+                                    };
+                                </div>
+                            </div>
+                            <div class="bg-purple-50 p-3 rounded">
+                                <h6 class="font-bold text-purple-600">🌳 DOM</h6>
+                                <p class="text-sm mb-2">Mengubah elemen HTML</p>
+                                <div class="bg-white p-2 rounded text-xs font-mono">
+                                    document.getElementById("demo")<br>
+                                    .innerHTML = "Hello World!";
+                                </div>
+                            </div>
+                        </div>
+
+                        <h5 class="font-bold mb-2">Tipe Data JavaScript:</h5>
+                        <div class="grid md:grid-cols-3 gap-2 mb-4 text-sm">
+                            <div class="bg-gray-100 p-2 rounded">
+                                <strong>String:</strong> "Hello World"
+                            </div>
+                            <div class="bg-gray-100 p-2 rounded">
+                                <strong>Number:</strong> 42, 3.14
+                            </div>
+                            <div class="bg-gray-100 p-2 rounded">
+                                <strong>Boolean:</strong> true, false
+                            </div>
+                            <div class="bg-gray-100 p-2 rounded">
+                                <strong>Array:</strong> [1, 2, 3]
+                            </div>
+                            <div class="bg-gray-100 p-2 rounded">
+                                <strong>Object:</strong> {nama: "Andi"}
+                            </div>
+                            <div class="bg-gray-100 p-2 rounded">
+                                <strong>Undefined:</strong> undefined
+                            </div>
+                        </div>
+
+                        <h5 class="font-bold mb-2">Contoh Kode Sederhana:</h5>
+                        <div class="bg-gray-900 text-green-400 p-4 rounded-lg mb-4 text-sm font-mono">
+                            // Kalkulator sederhana<br>
+                            function tambah(a, b) {<br>
+                            &nbsp;&nbsp;return a + b;<br>
+                            }<br><br>
+                            let hasil = tambah(5, 3);<br>
+                            console.log("Hasil: " + hasil); // Output: 8<br><br>
+                            // Event listener<br>
+                            document.addEventListener("click", function() {<br>
+                            &nbsp;&nbsp;alert("Halaman diklik!");<br>
+                            });
+                        </div>
+
+                        <div class="bg-blue-50 p-4 rounded-lg">
+                            <h5 class="font-bold mb-2">🚀 Project Ideas:</h5>
+                            <ul class="text-sm space-y-1">
+                                <li>• Kalkulator interaktif</li>
+                                <li>• To-do list dengan tambah/hapus item</li>
+                                <li>• Quiz dengan skor otomatis</li>
+                                <li>• Slideshow gambar</li>
+                                <li>• Form validasi real-time</li>
+                            </ul>
+                        </div>
+                    `
+                },
+                { 
+                    id: 'ai-ml', 
+                    title: '🤖 AI & Machine Learning', 
+                    description: 'Pengenalan kecerdasan buatan dan pembelajaran mesin',
+                    content: `
+                        <h4 class="text-lg font-bold mb-4">Artificial Intelligence & Machine Learning</h4>
+                        <div class="mb-4">
+                            <svg class="material-image mx-auto" width="300" height="200" viewBox="0 0 300 200">
+                                <circle cx="150" cy="100" r="60" fill="#4f46e5" stroke="#3730a3" stroke-width="3"/>
+                                <circle cx="150" cy="100" r="40" fill="#7c3aed" stroke="#5b21b6" stroke-width="2"/>
+                                <circle cx="150" cy="100" r="20" fill="#ec4899" stroke="#be185d" stroke-width="2"/>
+                                <circle cx="150" cy="100" r="8" fill="#ffffff"/>
+                                
+                                <!-- Neural network nodes -->
+                                <circle cx="80" cy="60" r="8" fill="#10b981"/>
+                                <circle cx="80" cy="100" r="8" fill="#10b981"/>
+                                <circle cx="80" cy="140" r="8" fill="#10b981"/>
+                                <circle cx="220" cy="80" r="8" fill="#f59e0b"/>
+                                <circle cx="220" cy="120" r="8" fill="#f59e0b"/>
+                                
+                                <!-- Connections -->
+                                <line x1="88" y1="60" x2="142" y2="92" stroke="#6b7280" stroke-width="1"/>
+                                <line x1="88" y1="100" x2="142" y2="100" stroke="#6b7280" stroke-width="2"/>
+                                <line x1="88" y1="140" x2="142" y2="108" stroke="#6b7280" stroke-width="1"/>
+                                <line x1="158" y1="92" x2="212" y2="80" stroke="#6b7280" stroke-width="1"/>
+                                <line x1="158" y1="108" x2="212" y2="120" stroke="#6b7280" stroke-width="1"/>
+                                
+                                <text x="150" y="180" text-anchor="middle" font-size="12" font-weight="bold">AI Neural Network</text>
+                            </svg>
+                        </div>
+                        <p class="mb-4">Artificial Intelligence (AI) adalah teknologi yang memungkinkan komputer untuk "berpikir" dan membuat keputusan seperti manusia. Machine Learning adalah bagian dari AI yang memungkinkan komputer belajar dari data.</p>
+
+                        <div class="grid md:grid-cols-2 gap-4 mb-4">
+                            <div class="bg-blue-50 p-4 rounded">
+                                <h5 class="font-bold text-blue-600 mb-2">🧠 Artificial Intelligence</h5>
+                                <ul class="text-sm space-y-1">
+                                    <li>• Simulasi kecerdasan manusia</li>
+                                    <li>• Pemecahan masalah otomatis</li>
+                                    <li>• Pengambilan keputusan</li>
+                                    <li>• Pemrosesan bahasa alami</li>
+                                </ul>
+                            </div>
+                            <div class="bg-purple-50 p-4 rounded">
+                                <h5 class="font-bold text-purple-600 mb-2">📊 Machine Learning</h5>
+                                <ul class="text-sm space-y-1">
+                                    <li>• Belajar dari data</li>
+                                    <li>• Prediksi dan klasifikasi</li>
+                                    <li>• Pattern recognition</li>
+                                    <li>• Improvement otomatis</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                        <h5 class="font-bold mb-2">Jenis-jenis Machine Learning:</h5>
+                        <div class="space-y-3 mb-4">
+                            <div class="bg-green-50 p-3 rounded">
+                                <h6 class="font-bold text-green-600">🎯 Supervised Learning</h6>
+                                <p class="text-sm">Belajar dari data yang sudah memiliki label/jawaban yang benar</p>
+                                <p class="text-xs text-gray-600 mt-1">Contoh: Klasifikasi email spam/bukan spam</p>
+                            </div>
+                            <div class="bg-yellow-50 p-3 rounded">
+                                <h6 class="font-bold text-yellow-600">🔍 Unsupervised Learning</h6>
+                                <p class="text-sm">Mencari pola dalam data tanpa label yang jelas</p>
+                                <p class="text-xs text-gray-600 mt-1">Contoh: Mengelompokkan pelanggan berdasarkan perilaku</p>
+                            </div>
+                            <div class="bg-orange-50 p-3 rounded">
+                                <h6 class="font-bold text-orange-600">🎮 Reinforcement Learning</h6>
+                                <p class="text-sm">Belajar melalui trial and error dengan sistem reward</p>
+                                <p class="text-xs text-gray-600 mt-1">Contoh: AI yang bermain game dan semakin pintar</p>
+                            </div>
+                        </div>
+
+                        <h5 class="font-bold mb-2">Penerapan AI dalam Kehidupan:</h5>
+                        <div class="grid md:grid-cols-2 gap-3 mb-4 text-sm">
+                            <div class="bg-red-50 p-3 rounded">
+                                <h6 class="font-bold">🗣️ Asisten Suara</h6>
+                                <p>Siri, Google Assistant, Alexa</p>
+                            </div>
+                            <div class="bg-blue-50 p-3 rounded">
+                                <h6 class="font-bold">🚗 Kendaraan Otonom</h6>
+                                <p>Self-driving cars, autopilot</p>
+                            </div>
+                            <div class="bg-green-50 p-3 rounded">
+                                <h6 class="font-bold">🎵 Rekomendasi</h6>
+                                <p>Spotify, Netflix, YouTube</p>
+                            </div>
+                            <div class="bg-purple-50 p-3 rounded">
+                                <h6 class="font-bold">📸 Computer Vision</h6>
+                                <p>Face recognition, object detection</p>
+                            </div>
+                            <div class="bg-yellow-50 p-3 rounded">
+                                <h6 class="font-bold">🏥 Healthcare</h6>
+                                <p>Diagnosis medis, drug discovery</p>
+                            </div>
+                            <div class="bg-pink-50 p-3 rounded">
+                                <h6 class="font-bold">🌐 Search Engine</h6>
+                                <p>Google Search, Bing</p>
+                            </div>
+                        </div>
+
+                        <h5 class="font-bold mb-2">Tools untuk Belajar AI/ML:</h5>
+                        <div class="grid md:grid-cols-3 gap-2 mb-4 text-sm">
+                            <div class="bg-gray-100 p-2 rounded text-center">
+                                <strong>Python</strong><br>
+                                <span class="text-xs">Bahasa pemrograman populer</span>
+                            </div>
+                            <div class="bg-gray-100 p-2 rounded text-center">
+                                <strong>Scratch for AI</strong><br>
+                                <span class="text-xs">AI untuk pemula</span>
+                            </div>
+                            <div class="bg-gray-100 p-2 rounded text-center">
+                                <strong>Teachable Machine</strong><br>
+                                <span class="text-xs">Google's ML tool</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg">
+                            <h5 class="font-bold mb-2">🚀 Masa Depan AI:</h5>
+                            <p class="text-sm mb-2">AI akan terus berkembang dan mengubah cara kita bekerja, belajar, dan hidup. Penting untuk:</p>
+                            <ul class="text-sm space-y-1">
+                                <li>• Memahami dasar-dasar AI dan ML</li>
+                                <li>• Belajar programming dan data science</li>
+                                <li>• Menggunakan AI secara etis dan bertanggung jawab</li>
+                                <li>• Terus mengikuti perkembangan teknologi</li>
+                            </ul>
+                        </div>
+                    `
+                }
+            ]
+        };
+
+        let studentsData = [];
+        let materialsFromSheets = {};
+
+        const quizData = {
+            'computer-basics': {
+                title: '🖥️ Kuis Pengenalan Komputer',
+                questions: [
+                    {
+                        question: 'Apa kepanjangan dari CPU?',
+                        options: ['Central Processing Unit', 'Computer Processing Unit', 'Central Program Unit', 'Computer Program Unit'],
+                        correct: 0
+                    },
+                    {
+                        question: 'Perangkat mana yang termasuk input device?',
+                        options: ['Monitor', 'Speaker', 'Keyboard', 'Printer'],
+                        correct: 2
+                    },
+                    {
+                        question: 'RAM berfungsi sebagai?',
+                        options: ['Penyimpanan permanen', 'Penyimpanan sementara', 'Pemroses data', 'Output device'],
+                        correct: 1
+                    }
+                ]
+            },
+            'operating-system': {
+                title: '⚙️ Kuis Sistem Operasi',
+                questions: [
+                    {
+                        question: 'Sistem operasi mana yang bersifat open source?',
+                        options: ['Windows', 'macOS', 'Linux', 'iOS'],
+                        correct: 2
+                    },
+                    {
+                        question: 'Fungsi utama sistem operasi adalah?',
+                        options: ['Mengelola hardware dan software', 'Membuat dokumen', 'Browsing internet', 'Bermain game'],
+                        correct: 0
+                    },
+                    {
+                        question: 'Windows dikembangkan oleh?',
+                        options: ['Apple', 'Google', 'Microsoft', 'IBM'],
+                        correct: 2
+                    }
+                ]
+            },
+            'internet-basics': {
+                title: '🌐 Kuis Internet Dasar',
+                questions: [
+                    {
+                        question: 'Apa kepanjangan dari WWW?',
+                        options: ['World Wide Web', 'World Web Wide', 'Wide World Web', 'Web World Wide'],
+                        correct: 0
+                    },
+                    {
+                        question: 'Protocol yang digunakan untuk mengakses website adalah?',
+                        options: ['FTP', 'HTTP', 'SMTP', 'POP3'],
+                        correct: 1
+                    },
+                    {
+                        question: 'ISP adalah singkatan dari?',
+                        options: ['Internet Service Provider', 'Internet System Provider', 'Internet Security Provider', 'Internet Software Provider'],
+                        correct: 0
+                    }
+                ]
+            },
+            'algorithms': {
+                title: '🔄 Kuis Algoritma',
+                questions: [
+                    {
+                        question: 'Algoritma adalah?',
+                        options: ['Program komputer', 'Langkah-langkah sistematis', 'Bahasa pemrograman', 'Sistem operasi'],
+                        correct: 1
+                    },
+                    {
+                        question: 'Simbol flowchart untuk keputusan adalah?',
+                        options: ['Persegi', 'Lingkaran', 'Belah ketupat', 'Oval'],
+                        correct: 2
+                    },
+                    {
+                        question: 'Pseudocode adalah?',
+                        options: ['Kode program', 'Algoritma dalam bahasa sehari-hari', 'Flowchart', 'Diagram'],
+                        correct: 1
+                    }
+                ]
+            },
+            'scratch-programming': {
+                title: '🎮 Kuis Pemrograman Scratch',
+                questions: [
+                    {
+                        question: 'Scratch menggunakan konsep?',
+                        options: ['Text-based programming', 'Visual programming', 'Assembly language', 'Machine code'],
+                        correct: 1
+                    },
+                    {
+                        question: 'Karakter dalam Scratch disebut?',
+                        options: ['Actor', 'Sprite', 'Character', 'Object'],
+                        correct: 1
+                    },
+                    {
+                        question: 'Blok hijau dalam Scratch untuk?',
+                        options: ['Motion', 'Events', 'Control', 'Operators'],
+                        correct: 1
+                    }
+                ]
+            },
+            'database-basics': {
+                title: '🗄️ Kuis Database Dasar',
+                questions: [
+                    {
+                        question: 'Database adalah?',
+                        options: ['Program komputer', 'Kumpulan data terorganisir', 'Sistem operasi', 'Hardware'],
+                        correct: 1
+                    },
+                    {
+                        question: 'Operasi CRUD terdiri dari?',
+                        options: ['Create, Read, Update, Delete', 'Copy, Read, Update, Delete', 'Create, Remove, Update, Delete', 'Create, Read, Upload, Delete'],
+                        correct: 0
+                    },
+                    {
+                        question: 'Tabel dalam database terdiri dari?',
+                        options: ['Baris saja', 'Kolom saja', 'Baris dan kolom', 'File'],
+                        correct: 2
+                    }
+                ]
+            },
+            'html-css': {
+                title: '🌐 Kuis HTML & CSS',
+                questions: [
+                    {
+                        question: 'HTML adalah singkatan dari?',
+                        options: ['HyperText Markup Language', 'HyperText Making Language', 'HyperText Management Language', 'HyperText Modern Language'],
+                        correct: 0
+                    },
+                    {
+                        question: 'CSS digunakan untuk?',
+                        options: ['Struktur website', 'Tampilan website', 'Fungsi website', 'Database website'],
+                        correct: 1
+                    },
+                    {
+                        question: 'Tag HTML untuk judul adalah?',
+                        options: ['<title>', '<h1>', '<header>', '<head>'],
+                        correct: 1
+                    }
+                ]
+            },
+            'javascript': {
+                title: '⚡ Kuis JavaScript',
+                questions: [
+                    {
+                        question: 'JavaScript digunakan untuk?',
+                        options: ['Styling website', 'Interaktivitas website', 'Struktur website', 'Database website'],
+                        correct: 1
+                    },
+                    {
+                        question: 'Cara mendeklarasikan variabel di JavaScript?',
+                        options: ['var nama', 'variable nama', 'declare nama', 'set nama'],
+                        correct: 0
+                    },
+                    {
+                        question: 'Function dalam JavaScript ditulis dengan?',
+                        options: ['func', 'function', 'def', 'method'],
+                        correct: 1
+                    }
+                ]
+            },
+            'ai-ml': {
+                title: '🤖 Kuis AI & Machine Learning',
+                questions: [
+                    {
+                        question: 'AI adalah singkatan dari?',
+                        options: ['Artificial Intelligence', 'Automated Intelligence', 'Advanced Intelligence', 'Applied Intelligence'],
+                        correct: 0
+                    },
+                    {
+                        question: 'Machine Learning adalah?',
+                        options: ['Mesin yang belajar', 'Komputer yang belajar dari data', 'Robot pintar', 'Program otomatis'],
+                        correct: 1
+                    },
+                    {
+                        question: 'Contoh penerapan AI dalam kehidupan sehari-hari?',
+                        options: ['Kalkulator', 'Asisten suara', 'Notepad', 'Paint'],
+                        correct: 1
+                    }
+                ]
+            }
+        };
+
+        const assignments = {
+            'computer-basics': {
+                title: '🖥️ Tugas Pengenalan Komputer',
+                description: 'Jelaskan fungsi dari setiap komponen komputer berikut:',
+                questions: [
+                    'Jelaskan fungsi CPU dalam komputer!',
+                    'Sebutkan 3 contoh input device dan fungsinya!',
+                    'Apa perbedaan antara RAM dan storage?'
+                ]
+            },
+            'operating-system': {
+                title: '⚙️ Tugas Sistem Operasi',
+                description: 'Jawab pertanyaan berikut tentang sistem operasi:',
+                questions: [
+                    'Sebutkan 3 fungsi utama sistem operasi!',
+                    'Bandingkan kelebihan dan kekurangan Windows dan Linux!',
+                    'Mengapa sistem operasi penting dalam komputer?'
+                ]
+            },
+            'internet-basics': {
+                title: '🌐 Tugas Internet Dasar',
+                description: 'Jawab pertanyaan tentang internet dan penggunaannya:',
+                questions: [
+                    'Jelaskan cara kerja internet secara sederhana!',
+                    'Sebutkan 5 layanan yang tersedia di internet!',
+                    'Bagaimana cara menjaga keamanan saat browsing internet?'
+                ]
+            },
+            'algorithms': {
+                title: '🔄 Tugas Algoritma',
+                description: 'Buat algoritma untuk masalah berikut:',
+                questions: [
+                    'Buat algoritma untuk menghitung luas persegi panjang!',
+                    'Buat flowchart untuk menentukan bilangan genap atau ganjil!',
+                    'Tuliskan pseudocode untuk mencari nilai terbesar dari 3 bilangan!'
+                ]
+            },
+            'scratch-programming': {
+                title: '🎮 Tugas Pemrograman Scratch',
+                description: 'Rancang program Scratch untuk:',
+                questions: [
+                    'Buat rancangan game sederhana menggunakan Scratch!',
+                    'Jelaskan fungsi dari 5 blok Scratch yang berbeda!',
+                    'Bagaimana cara membuat animasi bergerak di Scratch?'
+                ]
+            },
+            'database-basics': {
+                title: '🗄️ Tugas Database Dasar',
+                description: 'Jawab pertanyaan tentang database:',
+                questions: [
+                    'Rancang tabel database untuk data siswa sekolah!',
+                    'Jelaskan operasi CRUD dengan contoh!',
+                    'Mengapa database penting dalam sistem informasi?'
+                ]
+            },
+            'html-css': {
+                title: '🌐 Tugas HTML & CSS',
+                description: 'Buat rancangan website sederhana:',
+                questions: [
+                    'Buat struktur HTML untuk halaman profil pribadi!',
+                    'Tuliskan kode CSS untuk mengatur warna dan font!',
+                    'Bagaimana cara membuat layout responsive?'
+                ]
+            },
+            'javascript': {
+                title: '⚡ Tugas JavaScript',
+                description: 'Buat program JavaScript untuk:',
+                questions: [
+                    'Buat function untuk menghitung faktorial!',
+                    'Bagaimana cara membuat validasi form dengan JavaScript?',
+                    'Jelaskan perbedaan var, let, dan const!'
+                ]
+            },
+            'ai-ml': {
+                title: '🤖 Tugas AI & Machine Learning',
+                description: 'Analisis penerapan AI:',
+                questions: [
+                    'Berikan 5 contoh penerapan AI dalam kehidupan sehari-hari!',
+                    'Bagaimana cara kerja machine learning secara sederhana?',
+                    'Apa dampak positif dan negatif AI bagi manusia?'
+                ]
+            }
+        };
+
+        // Global variables
+        let currentUser = null;
+        let userType = null; // 'student' or 'teacher'
+        let currentSection = 'dashboard';
+        let currentGrade = 7;
+        let currentQuiz = null;
+        let quizScore = 0;
+        let currentQuestion = 0;
+        let currentMaterial = null;
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('Initializing app...');
+            console.log('Sheet ID:', SHEET_ID);
+            console.log('API Key:', API_KEY ? 'Present' : 'Missing');
+            console.log('Sheet Name:', SHEET_NAME);
+            
+            loadUserData();
+            if (currentUser) {
+                hideLoginModal();
+                showUserInfo();
+                if (userType === 'student') {
+                    showStudentInterface();
+                    updateDashboard();
+                    setupAttendanceForm();
+                } else if (userType === 'teacher') {
+                    showTeacherInterface();
+                    loadTeacherDashboard();
+                }
+            }
+            
+            // Load students data on startup
+            loadStudentsFromSheets().then(() => {
+                console.log('Initial data load complete');
+            });
+        });
+
+        // Login functions
+        function showLoginForm(type) {
+            // Update button styles
+            document.querySelectorAll('#student-login-btn, #teacher-login-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-500', 'bg-green-500', 'text-white');
+                btn.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+            });
+
+            if (type === 'student') {
+                document.getElementById('student-login-btn').classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+                document.getElementById('student-login-btn').classList.add('bg-blue-500', 'text-white');
+                document.getElementById('student-login-form').classList.remove('hidden');
+                document.getElementById('teacher-login-form').classList.add('hidden');
+            } else {
+                document.getElementById('teacher-login-btn').classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+                document.getElementById('teacher-login-btn').classList.add('bg-green-500', 'text-white');
+                document.getElementById('teacher-login-form').classList.remove('hidden');
+                document.getElementById('student-login-form').classList.add('hidden');
+            }
+        }
+
+        // Student login handler
+        document.getElementById('student-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            const name = document.getElementById('student-name').value.trim();
+            const studentClass = document.getElementById('student-class').value;
+            
+            showLoadingMessage();
+            
+            try {
+                // Load fresh data from Google Sheets
+                await loadStudentsFromSheets();
+                
+                // Find student in loaded data
+                const studentData = findStudentInSheets(name, studentClass);
+                
+                if (studentData) {
+                    currentUser = {
+                        name: studentData.name,
+                        nisn: studentData.nisn,
+                        class: studentData.class,
+                        progress: studentData.progress || {
+                            materials: [],
+                            quizzes: {},
+                            assignments: {}
+                        },
+                        attendance: studentData.attendance || []
+                    };
+                    userType = 'student';
+                    
+                    saveUserData();
+                    hideLoginModal();
+                    showUserInfo();
+                    showStudentInterface();
+                    updateDashboard();
+                    setupAttendanceForm();
+                } else {
+                    hideLoadingMessage();
+                    alert(`Siswa tidak ditemukan!\n\nNama: "${name}"\nKelas: "${studentClass}"\n\nPastikan nama dan kelas sudah sesuai dengan data di Google Sheets.\n\nData yang tersedia: ${studentsData.length} siswa`);
+                }
+            } catch (error) {
+                hideLoadingMessage();
+                console.error('Login error:', error);
+                alert('Terjadi kesalahan saat memuat data. Silakan coba lagi.');
+            }
+        });
+
+        // Teacher login handler
+        document.getElementById('teacher-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('teacher-username').value;
+            const password = document.getElementById('teacher-password').value;
+            
+            // Simple authentication (in real app, use proper authentication)
+            if (username === 'guru' && password === 'informatika123') {
+                currentUser = {
+                    name: 'Guru Informatika',
+                    role: 'teacher'
+                };
+                userType = 'teacher';
+                
+                saveUserData();
+                hideLoginModal();
+                showUserInfo();
+                showTeacherInterface();
+                loadTeacherDashboard();
+            } else {
+                alert('Username atau password salah!');
+            }
+        });
+
+        function showLoadingMessage() {
+            document.getElementById('student-login-form').classList.add('hidden');
+            document.getElementById('teacher-login-form').classList.add('hidden');
+            document.getElementById('loading-message').classList.remove('hidden');
+        }
+
+        function hideLoadingMessage() {
+            document.getElementById('loading-message').classList.add('hidden');
+            document.getElementById('student-login-form').classList.remove('hidden');
+        }
+
+        // Function to find student in loaded Google Sheets data
+        function findStudentInSheets(name, studentClass) {
+            return studentsData.find(student => 
+                student.name.toLowerCase().trim() === name.toLowerCase().trim() && 
+                student.class.toString() === studentClass.toString()
+            );
+        }
+
+        // Interface management
+        function showStudentInterface() {
+            document.getElementById('student-nav').classList.remove('hidden');
+            document.getElementById('teacher-nav').classList.add('hidden');
+        }
+
+        function showTeacherInterface() {
+            document.getElementById('teacher-nav').classList.remove('hidden');
+            document.getElementById('student-nav').classList.add('hidden');
+            currentSection = 'teacher-dashboard';
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Apakah Anda yakin ingin logout?')) {
+                localStorage.removeItem('userData');
+                localStorage.removeItem('userType');
+                location.reload();
+            }
+        }
+
+        // User management
+        function loadUserData() {
+            const userData = localStorage.getItem('userData');
+            const storedUserType = localStorage.getItem('userType');
+            if (userData && storedUserType) {
+                currentUser = JSON.parse(userData);
+                userType = storedUserType;
+            }
+        }
+
+        function saveUserData() {
+            localStorage.setItem('userData', JSON.stringify(currentUser));
+            localStorage.setItem('userType', userType);
+        }
+
+        function hideLoginModal() {
+            document.getElementById('login-modal').classList.add('hidden');
+        }
+
+        function showUserInfo() {
+            document.getElementById('user-info').classList.remove('hidden');
+            document.getElementById('user-name').textContent = currentUser.name;
+            if (userType === 'student') {
+                document.getElementById('user-class').textContent = `Kelas ${currentUser.class} - NISN: ${currentUser.nisn}`;
+            } else {
+                document.getElementById('user-class').textContent = 'Guru Informatika';
+            }
+        }
+
+        // Navigation
+        function showSection(section) {
+            currentSection = section;
+            
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(sec => {
+                sec.classList.add('hidden');
+            });
+            
+            // Show selected section
+            const sectionElement = document.getElementById(`${section}-section`);
+            if (sectionElement) {
+                sectionElement.classList.remove('hidden');
+            }
+            
+            // Update navigation buttons
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-500', 'bg-green-500', 'text-white');
+                btn.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+            });
+            
+            event.target.classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+            if (userType === 'teacher') {
+                event.target.classList.add('bg-green-500', 'text-white');
+            } else {
+                event.target.classList.add('bg-blue-500', 'text-white');
+            }
+            
+            // Load section content
+            if (section === 'materials') {
+                loadMaterials();
+            } else if (section === 'quiz') {
+                loadQuizList();
+            } else if (section === 'assignments') {
+                loadAssignments();
+            } else if (section === 'attendance') {
+                loadAttendance();
+            } else if (section === 'profile') {
+                loadProfile();
+            } else if (section === 'dashboard') {
+                updateDashboard();
+            } else if (section === 'teacher-dashboard') {
+                loadTeacherDashboard();
+            } else if (section === 'student-monitoring') {
+                loadStudentMonitoring();
+            } else if (section === 'class-progress') {
+                loadClassProgress();
+            } else if (section === 'materials-management') {
+                loadMaterialsManagement();
+            }
+        }
+
+        // Teacher Dashboard functions
+        function loadTeacherDashboard() {
+            // Mock data for teacher dashboard
+            const totalStudents = 150;
+            const activeStudents = 120;
+            const submittedAssignments = 85;
+            const averageScore = 78;
+
+            document.getElementById('total-students').textContent = totalStudents;
+            document.getElementById('active-students').textContent = activeStudents;
+            document.getElementById('submitted-assignments').textContent = submittedAssignments;
+            document.getElementById('average-score').textContent = averageScore;
+
+            // Load class progress chart
+            const classProgressChart = document.getElementById('class-progress-chart');
+            const classes = ['7', '8', '9'];
+            
+            classProgressChart.innerHTML = classes.map(className => {
+                const progress = Math.floor(Math.random() * 40) + 60; // Random progress 60-100%
+                return `
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="font-medium">${className}</span>
+                        <div class="flex items-center space-x-2">
+                            <div class="w-32 bg-gray-200 rounded-full h-2">
+                                <div class="bg-green-500 h-2 rounded-full" style="width: ${progress}%"></div>
+                            </div>
+                            <span class="text-sm font-medium">${progress}%</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function loadStudentMonitoring() {
+            // Mock student data for monitoring
+            const mockStudents = [
+                { name: 'Ahmad Rizki', nisn: '1234567890', class: '7', materials: 2, quizzes: 1, assignments: 1, status: 'Aktif' },
+                { name: 'Siti Nurhaliza', nisn: '1234567891', class: '7', materials: 3, quizzes: 2, assignments: 2, status: 'Aktif' },
+                { name: 'Budi Santoso', nisn: '1234567892', class: '7', materials: 1, quizzes: 0, assignments: 0, status: 'Kurang Aktif' },
+                { name: 'Dewi Sartika', nisn: '1234567893', class: '8', materials: 3, quizzes: 3, assignments: 2, status: 'Aktif' },
+                { name: 'Eko Prasetyo', nisn: '1234567894', class: '8', materials: 2, quizzes: 1, assignments: 1, status: 'Aktif' },
+                { name: 'Fitri Handayani', nisn: '1234567895', class: '9', materials: 3, quizzes: 2, assignments: 3, status: 'Aktif' },
+                { name: 'Galih Pratama', nisn: '1234567896', class: '9', materials: 2, quizzes: 1, assignments: 1, status: 'Aktif' },
+                { name: 'Hana Pertiwi', nisn: '1234567897', class: '9', materials: 1, quizzes: 1, assignments: 0, status: 'Kurang Aktif' }
+            ];
+
+            const studentsTable = document.getElementById('students-table');
+            studentsTable.innerHTML = mockStudents.map((student, index) => `
+                <tr class="${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}">
+                    <td class="border border-gray-300 p-3">${index + 1}</td>
+                    <td class="border border-gray-300 p-3">${student.name}</td>
+                    <td class="border border-gray-300 p-3">${student.nisn}</td>
+                    <td class="border border-gray-300 p-3">${student.class}</td>
+                    <td class="border border-gray-300 p-3">${student.materials}/9</td>
+                    <td class="border border-gray-300 p-3">${student.quizzes}/9</td>
+                    <td class="border border-gray-300 p-3">${student.assignments}/9</td>
+                    <td class="border border-gray-300 p-3">
+                        <span class="px-2 py-1 rounded-full text-sm ${student.status === 'Aktif' ? 'bg-green-100 text-green-800' : 'bg-yellow-100 text-yellow-800'}">
+                            ${student.status}
+                        </span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function filterStudents() {
+            // Implementation for filtering students by class
+            loadStudentMonitoring();
+        }
+
+        function loadClassProgress() {
+            const classProgressContent = document.getElementById('class-progress-content');
+            const classes = ['7', '8', '9'];
+            
+            classProgressContent.innerHTML = `
+                <div class="grid md:grid-cols-3 gap-6">
+                    ${classes.map(className => {
+                        const totalStudents = Math.floor(Math.random() * 10) + 15;
+                        const activeStudents = Math.floor(totalStudents * 0.8);
+                        const avgProgress = Math.floor(Math.random() * 30) + 70;
+                        
+                        return `
+                            <div class="bg-white rounded-xl card-shadow p-6">
+                                <h3 class="text-xl font-bold text-gray-800 mb-4">Kelas ${className}</h3>
+                                <div class="space-y-3">
+                                    <div class="flex justify-between">
+                                        <span>Total Siswa:</span>
+                                        <span class="font-bold">${totalStudents}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Siswa Aktif:</span>
+                                        <span class="font-bold text-green-600">${activeStudents}</span>
+                                    </div>
+                                    <div class="flex justify-between">
+                                        <span>Progress Rata-rata:</span>
+                                        <span class="font-bold text-blue-600">${avgProgress}%</span>
+                                    </div>
+                                    <div class="w-full bg-gray-200 rounded-full h-2 mt-2">
+                                        <div class="bg-blue-500 h-2 rounded-full" style="width: ${avgProgress}%"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // Google Sheets integration functions
+        async function loadStudentsFromSheets() {
+            try {
+                const url = `https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}/values/${SHEET_NAME}!A:B?key=${API_KEY}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.values && data.values.length > 0) {
+                    // Skip header row if exists
+                    const rows = data.values.slice(1);
+                    studentsData = rows.map((row, index) => ({
+                        name: row[0] || '',
+                        class: row[1] || '',
+                        nisn: `123456789${index.toString().padStart(2, '0')}` // Generate NISN
+                    })).filter(student => student.name && student.class);
+                    
+                    console.log('Students loaded from Google Sheets:', studentsData.length);
+                } else {
+                    console.warn('No data found in Google Sheets');
+                    // Fallback to mock data
+                    studentsData = [
+                        { name: 'Ahmad Rizki', nisn: '1234567890', class: '7' },
+                        { name: 'Siti Nurhaliza', nisn: '1234567891', class: '7' },
+                        { name: 'Budi Santoso', nisn: '1234567892', class: '7' }
+                    ];
+                }
+            } catch (error) {
+                console.error('Error loading students from sheets:', error);
+                // Fallback to mock data
+                studentsData = [
+                    { name: 'Ahmad Rizki', nisn: '1234567890', class: '7' },
+                    { name: 'Siti Nurhaliza', nisn: '1234567891', class: '7' },
+                    { name: 'Budi Santoso', nisn: '1234567892', class: '7' }
+                ];
+            }
+        }
+
+        async function syncMaterialsFromSheets() {
+            try {
+                // Show loading state
+                const syncBtn = event.target;
+                const originalText = syncBtn.innerHTML;
+                syncBtn.innerHTML = '🔄 Syncing...';
+                syncBtn.disabled = true;
+
+                // Simulate API call
+                await new Promise(resolve => setTimeout(resolve, 2000));
+
+                // Update last sync time
+                document.getElementById('last-sync').textContent = new Date().toLocaleString('id-ID');
+                
+                // Reset button
+                syncBtn.innerHTML = originalText;
+                syncBtn.disabled = false;
+                
+                alert('Data berhasil disinkronisasi dari Google Sheets!');
+            } catch (error) {
+                console.error('Error syncing materials:', error);
+                alert('Gagal sinkronisasi data. Silakan coba lagi.');
+            }
+        }
+
+        function loadMaterialsManagement() {
+            const materialsManagementContent = document.getElementById('materials-management-content');
+            
+            materialsManagementContent.innerHTML = `
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="bg-white rounded-xl card-shadow p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">📚 Kelas 7</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">Pengenalan Komputer</span>
+                                <span class="text-xs text-green-600">✓ Aktif</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">Sistem Operasi</span>
+                                <span class="text-xs text-green-600">✓ Aktif</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">Internet Dasar</span>
+                                <span class="text-xs text-green-600">✓ Aktif</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl card-shadow p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">📊 Kelas 8</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">Algoritma</span>
+                                <span class="text-xs text-green-600">✓ Aktif</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">Pemrograman Scratch</span>
+                                <span class="text-xs text-green-600">✓ Aktif</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">Database Dasar</span>
+                                <span class="text-xs text-green-600">✓ Aktif</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white rounded-xl card-shadow p-6">
+                        <h3 class="text-xl font-bold text-gray-800 mb-4">🚀 Kelas 9</h3>
+                        <div class="space-y-2">
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">HTML & CSS</span>
+                                <span class="text-xs text-green-600">✓ Aktif</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">JavaScript</span>
+                                <span class="text-xs text-green-600">✓ Aktif</span>
+                            </div>
+                            <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                                <span class="text-sm">AI & Machine Learning</span>
+                                <span class="text-xs text-green-600">✓ Aktif</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="mt-6 bg-white rounded-xl card-shadow p-6">
+                    <h3 class="text-xl font-bold text-gray-800 mb-4">📈 Statistik Materi</h3>
+                    <div class="grid md:grid-cols-4 gap-4">
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-blue-500">9</div>
+                            <div class="text-sm text-gray-600">Total Materi</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-green-500">9</div>
+                            <div class="text-sm text-gray-600">Materi Aktif</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-purple-500">150</div>
+                            <div class="text-sm text-gray-600">Total Akses</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-2xl font-bold text-orange-500">85%</div>
+                            <div class="text-sm text-gray-600">Tingkat Penyelesaian</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Student functions
+        function updateDashboard() {
+            if (!currentUser || userType !== 'student') return;
+            
+            const progress = currentUser.progress || { materials: [], quizzes: {}, assignments: {} };
+            
+            // Update counters
+            document.getElementById('materials-completed').textContent = progress.materials.length;
+            document.getElementById('quiz-completed').textContent = Object.keys(progress.quizzes).length;
+            document.getElementById('assignments-completed').textContent = Object.keys(progress.assignments).length;
+            
+            // Update progress bars based on student's class
+            const studentGrade = parseInt(currentUser.class);
+            const gradeProgress = Math.floor((progress.materials.filter(m => materials[studentGrade] && materials[studentGrade].find(mat => mat.id === m)).length / 3) * 100);
+            
+            // Reset all progress bars
+            [7, 8, 9].forEach(grade => {
+                document.getElementById(`grade${grade}-progress`).textContent = '0%';
+                document.getElementById(`grade${grade}-bar`).style.width = '0%';
+            });
+            
+            // Set progress for student's grade
+            document.getElementById(`grade${studentGrade}-progress`).textContent = `${gradeProgress}%`;
+            document.getElementById(`grade${studentGrade}-bar`).style.width = `${gradeProgress}%`;
+        }
+
+        function loadMaterials() {
+            showGradeMaterials(currentGrade);
+        }
+
+        function showGradeMaterials(grade) {
+            currentGrade = grade;
+            
+            // Update grade buttons
+            document.querySelectorAll('.grade-material-btn').forEach(btn => {
+                btn.classList.remove('bg-blue-500', 'text-white');
+                btn.classList.add('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+            });
+            event.target.classList.remove('bg-gray-200', 'text-gray-700', 'hover:bg-gray-300');
+            event.target.classList.add('bg-blue-500', 'text-white');
+            
+            const materialsContent = document.getElementById('materials-content');
+            const gradeMaterials = materials[grade] || [];
+            
+            materialsContent.innerHTML = `
+                <div class="grid md:grid-cols-3 gap-6">
+                    ${gradeMaterials.map(material => {
+                        const isCompleted = currentUser && currentUser.progress && currentUser.progress.materials.includes(material.id);
+                        return `
+                            <div class="bg-white rounded-xl card-shadow p-6 hover-scale cursor-pointer" onclick="openMaterial('${material.id}')">
+                                <div class="flex justify-between items-start mb-4">
+                                    <h3 class="text-xl font-bold text-gray-800">${material.title}</h3>
+                                    ${isCompleted ? '<span class="text-green-500 text-2xl">✅</span>' : '<span class="text-gray-300 text-2xl">⭕</span>'}
+                                </div>
+                                <p class="text-gray-600 mb-4">${material.description}</p>
+                                <button class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600 transition-colors">
+                                    ${isCompleted ? '📖 Baca Ulang' : '🚀 Mulai Belajar'}
+                                </button>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function openMaterial(materialId) {
+            // Find material across all grades
+            let material = null;
+            for (let grade in materials) {
+                material = materials[grade].find(m => m.id === materialId);
+                if (material) break;
+            }
+            
+            if (!material) return;
+            
+            currentMaterial = materialId;
+            document.getElementById('material-title').textContent = material.title;
+            document.getElementById('material-content-detail').innerHTML = material.content;
+            
+            // Update complete button
+            const isCompleted = currentUser && currentUser.progress && currentUser.progress.materials.includes(materialId);
+            const completeBtn = document.getElementById('complete-material-btn');
+            if (isCompleted) {
+                completeBtn.textContent = '✅ Sudah Selesai';
+                completeBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                completeBtn.classList.add('bg-gray-500');
+                completeBtn.disabled = true;
+            } else {
+                completeBtn.textContent = '✅ Tandai Selesai';
+                completeBtn.classList.remove('bg-gray-500');
+                completeBtn.classList.add('bg-green-500', 'hover:bg-green-600');
+                completeBtn.disabled = false;
+            }
+            
+            document.getElementById('material-modal').classList.remove('hidden');
+        }
+
+        function closeMaterial() {
+            document.getElementById('material-modal').classList.add('hidden');
+            currentMaterial = null;
+        }
+
+        function completeMaterial() {
+            if (!currentUser || !currentMaterial) return;
+            
+            if (!currentUser.progress) {
+                currentUser.progress = { materials: [], quizzes: {}, assignments: {} };
+            }
+            
+            if (!currentUser.progress.materials.includes(currentMaterial)) {
+                currentUser.progress.materials.push(currentMaterial);
+                saveUserData();
+                updateDashboard();
+                
+                // Update button
+                const completeBtn = document.getElementById('complete-material-btn');
+                completeBtn.textContent = '✅ Sudah Selesai';
+                completeBtn.classList.remove('bg-green-500', 'hover:bg-green-600');
+                completeBtn.classList.add('bg-gray-500');
+                completeBtn.disabled = true;
+                
+                alert('🎉 Selamat! Materi telah selesai dipelajari.');
+            }
+        }
+
+        function loadQuizList() {
+            const quizList = document.getElementById('quiz-list');
+            const allQuizzes = Object.keys(quizData);
+            
+            quizList.innerHTML = allQuizzes.map(quizId => {
+                const quiz = quizData[quizId];
+                const isCompleted = currentUser && currentUser.progress && currentUser.progress.quizzes[quizId];
+                const score = isCompleted ? currentUser.progress.quizzes[quizId] : 0;
+                
+                return `
+                    <div class="bg-white rounded-xl card-shadow p-6 hover-scale">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-lg font-bold text-gray-800">${quiz.title}</h3>
+                            ${isCompleted ? '<span class="text-green-500 text-2xl">✅</span>' : '<span class="text-gray-300 text-2xl">❓</span>'}
+                        </div>
+                        <p class="text-gray-600 mb-4">${quiz.questions.length} pertanyaan</p>
+                        ${isCompleted ? `<p class="text-green-600 font-bold mb-4">Skor: ${score}/100</p>` : ''}
+                        <button onclick="startQuiz('${quizId}')" class="w-full bg-green-500 text-white py-2 rounded-lg hover:bg-green-600 transition-colors">
+                            ${isCompleted ? '🔄 Ulangi Kuis' : '🎯 Mulai Kuis'}
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function startQuiz(quizId) {
+            currentQuiz = quizId;
+            currentQuestion = 0;
+            quizScore = 0;
+            
+            const quiz = quizData[quizId];
+            document.getElementById('quiz-title').textContent = quiz.title;
+            
+            showQuestion();
+            document.getElementById('quiz-modal').classList.remove('hidden');
+        }
+
+        function showQuestion() {
+            const quiz = quizData[currentQuiz];
+            const question = quiz.questions[currentQuestion];
+            
+            document.getElementById('quiz-content').innerHTML = `
+                <div class="mb-6">
+                    <div class="flex justify-between items-center mb-4">
+                        <span class="text-sm text-gray-600">Pertanyaan ${currentQuestion + 1} dari ${quiz.questions.length}</span>
+                        <span class="text-sm text-gray-600">Skor: ${quizScore}</span>
+                    </div>
+                    <div class="w-full bg-gray-200 rounded-full h-2 mb-4">
+                        <div class="bg-blue-500 h-2 rounded-full" style="width: ${((currentQuestion) / quiz.questions.length) * 100}%"></div>
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <h4 class="text-lg font-bold text-gray-800 mb-4">${question.question}</h4>
+                    <div class="space-y-3">
+                        ${question.options.map((option, index) => `
+                            <button onclick="selectAnswer(${index})" class="quiz-option w-full text-left p-3 border border-gray-300 rounded-lg hover:bg-blue-50 hover:border-blue-300 transition-colors">
+                                ${String.fromCharCode(65 + index)}. ${option}
+                            </button>
+                        `).join('')}
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectAnswer(selectedIndex) {
+            const quiz = quizData[currentQuiz];
+            const question = quiz.questions[currentQuestion];
+            const isCorrect = selectedIndex === question.correct;
+            
+            // Update score
+            if (isCorrect) {
+                quizScore += Math.round(100 / quiz.questions.length);
+            }
+            
+            // Show feedback
+            const options = document.querySelectorAll('.quiz-option');
+            options.forEach((option, index) => {
+                option.disabled = true;
+                if (index === question.correct) {
+                    option.classList.add('bg-green-100', 'border-green-500', 'text-green-800');
+                } else if (index === selectedIndex && !isCorrect) {
+                    option.classList.add('bg-red-100', 'border-red-500', 'text-red-800');
+                }
+            });
+            
+            // Show next button or finish
+            setTimeout(() => {
+                currentQuestion++;
+                if (currentQuestion < quiz.questions.length) {
+                    showQuestion();
+                } else {
+                    finishQuiz();
+                }
+            }, 1500);
+        }
+
+        function finishQuiz() {
+            // Save quiz result
+            if (!currentUser.progress) {
+                currentUser.progress = { materials: [], quizzes: {}, assignments: {} };
+            }
+            currentUser.progress.quizzes[currentQuiz] = quizScore;
+            saveUserData();
+            updateDashboard();
+            
+            // Show result
+            document.getElementById('quiz-content').innerHTML = `
+                <div class="text-center">
+                    <div class="text-6xl mb-4">${quizScore >= 70 ? '🎉' : '😔'}</div>
+                    <h3 class="text-2xl font-bold text-gray-800 mb-4">Kuis Selesai!</h3>
+                    <div class="text-4xl font-bold ${quizScore >= 70 ? 'text-green-500' : 'text-red-500'} mb-4">
+                        ${quizScore}/100
+                    </div>
+                    <p class="text-gray-600 mb-6">
+                        ${quizScore >= 70 ? 'Selamat! Anda lulus kuis ini.' : 'Jangan menyerah! Coba lagi untuk hasil yang lebih baik.'}
+                    </p>
+                    <button onclick="closeQuiz()" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600">
+                        Tutup
+                    </button>
+                </div>
+            `;
+        }
+
+        function closeQuiz() {
+            document.getElementById('quiz-modal').classList.add('hidden');
+            currentQuiz = null;
+            loadQuizList(); // Refresh quiz list to show updated status
+        }
+
+        function loadAssignments() {
+            const assignmentsList = document.getElementById('assignments-list');
+            const allAssignments = Object.keys(assignments);
+            
+            assignmentsList.innerHTML = allAssignments.map(assignmentId => {
+                const assignment = assignments[assignmentId];
+                const isCompleted = currentUser && currentUser.progress && currentUser.progress.assignments[assignmentId];
+                
+                return `
+                    <div class="bg-white rounded-xl card-shadow p-6">
+                        <div class="flex justify-between items-start mb-4">
+                            <h3 class="text-xl font-bold text-gray-800">${assignment.title}</h3>
+                            ${isCompleted ? '<span class="text-green-500 text-2xl">✅</span>' : '<span class="text-gray-300 text-2xl">📝</span>'}
+                        </div>
+                        <p class="text-gray-600 mb-4">${assignment.description}</p>
+                        <div class="space-y-3 mb-6">
+                            ${assignment.questions.map((question, index) => `
+                                <div class="bg-gray-50 p-3 rounded-lg">
+                                    <p class="font-medium text-gray-800">${index + 1}. ${question}</p>
+                                    ${isCompleted ? 
+                                        `<p class="text-green-600 text-sm mt-2">✅ Sudah dikerjakan</p>` :
+                                        `<textarea class="w-full mt-2 p-2 border border-gray-300 rounded" rows="3" placeholder="Tulis jawaban Anda di sini..."></textarea>`
+                                    }
+                                </div>
+                            `).join('')}
+                        </div>
+                        ${!isCompleted ? `
+                            <button onclick="submitAssignment('${assignmentId}')" class="w-full bg-purple-500 text-white py-2 rounded-lg hover:bg-purple-600 transition-colors">
+                                📤 Submit Tugas
+                            </button>
+                        ` : `
+                            <div class="text-center text-green-600 font-medium">
+                                ✅ Tugas telah dikumpulkan
+                            </div>
+                        `}
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function submitAssignment(assignmentId) {
+            const textareas = event.target.parentElement.querySelectorAll('textarea');
+            const answers = Array.from(textareas).map(textarea => textarea.value.trim());
+            
+            // Check if all questions are answered
+            if (answers.some(answer => answer === '')) {
+                alert('Mohon jawab semua pertanyaan sebelum submit!');
+                return;
+            }
+            
+            // Save assignment
+            if (!currentUser.progress) {
+                currentUser.progress = { materials: [], quizzes: {}, assignments: {} };
+            }
+            currentUser.progress.assignments[assignmentId] = {
+                answers: answers,
+                submittedAt: new Date().toISOString()
+            };
+            
+            saveUserData();
+            updateDashboard();
+            loadAssignments(); // Refresh to show completed status
+            
+            alert('🎉 Tugas berhasil dikumpulkan!');
+        }
+
+        function setupAttendanceForm() {
+            if (!currentUser) return;
+            
+            document.getElementById('attendance-name').value = currentUser.name;
+            document.getElementById('attendance-nisn').value = currentUser.nisn;
+            document.getElementById('attendance-grade').value = `Kelas ${currentUser.class}`;
+        }
+
+        document.getElementById('attendance-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const topic = document.getElementById('attendance-topic').value;
+            const notes = document.getElementById('attendance-notes').value;
+            
+            const attendanceRecord = {
+                date: new Date().toLocaleDateString('id-ID'),
+                topic: topic,
+                grade: currentUser.class,
+                notes: notes,
+                timestamp: new Date().toISOString()
+            };
+            
+            if (!currentUser.attendance) {
+                currentUser.attendance = [];
+            }
+            
+            currentUser.attendance.push(attendanceRecord);
+            saveUserData();
+            
+            // Reset form
+            document.getElementById('attendance-topic').value = '';
+            document.getElementById('attendance-notes').value = '';
+            
+            loadAttendance();
+            alert('✅ Absensi berhasil dicatat!');
+        });
+
+        function loadAttendance() {
+            const attendanceHistory = document.getElementById('attendance-history');
+            const noAttendance = document.getElementById('no-attendance');
+            
+            if (!currentUser || !currentUser.attendance || currentUser.attendance.length === 0) {
+                attendanceHistory.innerHTML = '';
+                noAttendance.classList.remove('hidden');
+                return;
+            }
+            
+            noAttendance.classList.add('hidden');
+            attendanceHistory.innerHTML = currentUser.attendance.map((record, index) => `
+                <tr class="${index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}">
+                    <td class="border border-gray-300 p-3">${index + 1}</td>
+                    <td class="border border-gray-300 p-3">${record.date}</td>
+                    <td class="border border-gray-300 p-3">${record.topic}</td>
+                    <td class="border border-gray-300 p-3">Kelas ${record.grade}</td>
+                    <td class="border border-gray-300 p-3">
+                        <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-sm">Hadir</span>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function loadProfile() {
+            if (!currentUser) return;
+            
+            document.getElementById('profile-name').textContent = currentUser.name;
+            document.getElementById('profile-nisn').textContent = currentUser.nisn;
+            document.getElementById('profile-class').textContent = `Kelas ${currentUser.class}`;
+            
+            const progress = currentUser.progress || { materials: [], quizzes: {}, assignments: {} };
+            const stats = document.getElementById('profile-stats');
+            
+            stats.innerHTML = `
+                <div class="flex justify-between">
+                    <span class="font-medium">Materi Selesai:</span>
+                    <span class="text-blue-600 font-bold">${progress.materials.length}/9</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-medium">Kuis Selesai:</span>
+                    <span class="text-green-600 font-bold">${Object.keys(progress.quizzes).length}/9</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-medium">Tugas Selesai:</span>
+                    <span class="text-purple-600 font-bold">${Object.keys(progress.assignments).length}/9</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-medium">Kehadiran:</span>
+                    <span class="text-orange-600 font-bold">${currentUser.attendance ? currentUser.attendance.length : 0} hari</span>
+                </div>
+                <div class="flex justify-between">
+                    <span class="font-medium">Rata-rata Kuis:</span>
+                    <span class="text-red-600 font-bold">${calculateAverageQuizScore()}</span>
+                </div>
+            `;
+        }
+
+        function calculateAverageQuizScore() {
+            if (!currentUser || !currentUser.progress || !currentUser.progress.quizzes) return '0';
+            
+            const scores = Object.values(currentUser.progress.quizzes);
+            if (scores.length === 0) return '0';
+            
+            const average = scores.reduce((sum, score) => sum + score, 0) / scores.length;
+            return Math.round(average);
+        }
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'98a2193bd1b7445e',t:'MTc1OTcyMTYyMC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script>
